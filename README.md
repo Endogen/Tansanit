@@ -4,14 +4,14 @@ Command line wallet for the [Bismuth](https://bismuth.cz) cryptocurrency (BIS)
 ## Starting
 Start Tansanit on the command line
 
-```shell
+```
 ./tansanit.py
 ```
 
 ## Arguments
 Use `./tansanit.py -h` to show all available arguments
 
-```shell
+```
 ➜  Tansanit git:(master) ✗ ./tansanit.py -h
 |usage: tansanit.py [-h] [-s SERVER] [-l {10,20,30,40,50}]
 
@@ -26,14 +26,14 @@ optional arguments:
 ### Connect to a specific server
 Use the `-s <ip>:<port>` argument to connect to a specific server
 
-```shell
+```
 ./tansanit.py -s 46.101.186.35:8150
 ```
 
 ### Enable logging to logfile
 Use the `-l <log level>` argument to save log messages to the `log` folder
 
-```shell
+```
 ./tansanit.py -l 20
 ```
 
@@ -47,7 +47,7 @@ Available log levels are
 ## Usage
 After you started Tansanit, list all available commands by entering `help`
 
-```shell
+```
 ➜  Tansanit git:(master) ✗ ./tansanit.py 
   ______                             _ __ 
  /_  __/___ _____  _________ _____  (_) /_
@@ -68,7 +68,7 @@ help     refresh  servers  transactions  wallet
 
 Or for help regarding a specific command, use `help <command>`
 
-```shell
+```
 > help balance
  Show wallet balance 
 ```
