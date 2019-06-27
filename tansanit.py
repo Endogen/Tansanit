@@ -17,7 +17,7 @@ from logging.handlers import TimedRotatingFileHandler
 
 class Tansanit(Cmd):
 
-    __version__ = "0.1"
+    __version__ = "0.2"
 
     LOG_FILE = os.path.join("log", "tansanit.log")
 
