@@ -21,8 +21,8 @@ class Tansanit(Cmd):
 
     __version__ = "0.2"
 
-    WALLET_OLD = "wallet.der"
-    WALLET_NEW = "wallet.json"
+    WALLET_DER = "wallet.der"
+    WALLET_ENC = "wallet.json"
     LOG_FILE = os.path.join("log", "tansanit.log")
 
     def __init__(self):
@@ -127,6 +127,7 @@ class Tansanit(Cmd):
         address = arg_list[0]
         amount = arg_list[1]
 
+        # Check if wallet address is valid
         if not BismuthUtil.valid_address(address):
             msg = f"'{address}' is not a valid address"
             logging.error(msg)
@@ -146,7 +147,7 @@ class Tansanit(Cmd):
         ]
 
         result = prompt(question)
-        if result and result["send"] == "Yes":
+        if result and result[question[0]["name"]] == "Yes":
             self._prnt(self.client.send(address, float(amount)))
 
     def do_balance(self, args):
@@ -178,7 +179,7 @@ class Tansanit(Cmd):
         ]
 
         result = prompt(question)
-        if result and result["quit"] == "Yes":
+        if result and result[question[0]["name"]] == "Yes":
             raise SystemExit
 
     def _prnt(self, obj):
