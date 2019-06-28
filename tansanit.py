@@ -63,6 +63,15 @@ class Tansanit(Cmd):
             default=60,
             required=False)
 
+        # Encrypted
+        parser.add_argument(
+            "-e",
+            dest="encrypted",
+            action="store_true",
+            help="use encrypted wallet",
+            default=False,
+            required=False)
+
         return parser.parse_args()
 
     def _logging(self, level):
