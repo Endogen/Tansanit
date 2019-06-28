@@ -15,10 +15,13 @@ from bismuthclient.bismuthclient import BismuthClient
 from logging.handlers import TimedRotatingFileHandler
 
 
+# TODO: Add logging method that adds the name of the current method
 class Tansanit(Cmd):
 
     __version__ = "0.2"
 
+    WALLET_OLD = "wallet.der"
+    WALLET_NEW = "wallet.json"
     LOG_FILE = os.path.join("log", "tansanit.log")
 
     def __init__(self):
@@ -26,6 +29,7 @@ class Tansanit(Cmd):
 
         # Parse command line arguments
         self.args = self._parse_args()
+        logging.debug(self.args)  # FIXME: Not in logs?
 
         # Set up logging
         self._logging(self.args.log)
@@ -118,7 +122,9 @@ class Tansanit(Cmd):
         amount = arg_list[1]
 
         if not BismuthUtil.valid_address(address):
-            self._prnt(f"'{address}' is not a valid address")
+            msg = f"'{address}' is not a valid address"
+            logging.error(msg)
+            self._prnt(msg)
             return
 
         question = [
