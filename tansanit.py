@@ -15,7 +15,7 @@ from bismuthclient.bismuthclient import BismuthClient
 from logging.handlers import TimedRotatingFileHandler
 
 
-# TODO: Add logging method that adds the name of the current method
+# TODO: Add possibility to convert wallets: der <--> json
 class Tansanit(Cmd):
 
     __version__ = "0.2"
@@ -29,15 +29,19 @@ class Tansanit(Cmd):
 
         # Parse command line arguments
         self.args = self._parse_args()
-        logging.debug(self.args)  # FIXME: Not in logs?
 
         # Set up logging
         self._logging(self.args.log)
 
+        # Log arguments
+        logging.debug(self.args)
+
+        # Create and load wallet
         self.client = BismuthClient()
         self.client.new_wallet()
         self.client.load_wallet()
 
+        # Connect to server
         if self.args.server:
             # Connect to specified server
             self.client.set_server(self.args.server)
@@ -81,8 +85,9 @@ class Tansanit(Cmd):
     def _logging(self, level):
         logger = logging.getLogger()
         logger.setLevel(level)
+        logger.handlers = []
 
-        if level <= 50:
+        if level in [10, 20, 30, 40, 50]:
             # Create 'log' directory if not present
             log_path = os.path.dirname(self.LOG_FILE)
             os.makedirs(log_path, exist_ok=True)
@@ -93,8 +98,8 @@ class Tansanit(Cmd):
                 when="H",
                 encoding="utf-8")
 
-            log_format = '%(asctime)s - %(levelname)s - %(message)s'
-            file_log.setFormatter(logging.Formatter(log_format))
+            s = "[%(asctime)s %(levelname)s %(filename)s:%(lineno)s %(funcName)s()] %(message)s"
+            file_log.setFormatter(logging.Formatter(s))
             file_log.setLevel(level)
 
             logger.addHandler(file_log)
@@ -175,6 +180,7 @@ class Tansanit(Cmd):
         ]
 
         print()
+        # TODO: If clicked, then there is no 'quit' in that dict
         if prompt(question)["quit"] == "Yes":
             print()
             raise SystemExit
