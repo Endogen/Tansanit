@@ -15,6 +15,7 @@ from bismuthclient.bismuthclient import BismuthClient
 from logging.handlers import TimedRotatingFileHandler
 
 
+# TODO: Support encrypted wallets
 # TODO: Add possibility to convert wallets: der <--> json
 class Tansanit(Cmd):
 
@@ -144,12 +145,9 @@ class Tansanit(Cmd):
             }
         ]
 
-        print()
-        if prompt(question)["send"] == "Yes":
-            print()
+        result = prompt(question)
+        if result and result["send"] == "Yes":
             self._prnt(self.client.send(address, float(amount)))
-        else:
-            print()
 
     def do_balance(self, args):
         """ Show wallet balance """
@@ -179,13 +177,9 @@ class Tansanit(Cmd):
             }
         ]
 
-        print()
-        # TODO: If clicked, then there is no 'quit' in that dict
-        if prompt(question)["quit"] == "Yes":
-            print()
+        result = prompt(question)
+        if result and result["quit"] == "Yes":
             raise SystemExit
-        else:
-            print()
 
     def _prnt(self, obj):
         print(f"\n{obj}\n")
@@ -207,10 +201,10 @@ class Spinner:
 
     def spinner_task(self):
         while self.busy:
-            sys.stdout.write(next(self.spinner_generator))
+            sys.stdout.write(f"{next(self.spinner_generator)} Loading...")
             sys.stdout.flush()
             time.sleep(self.delay)
-            sys.stdout.write('\b')
+            sys.stdout.write('\b\b\b\b\b\b\b\b\b\b\b\b')
             sys.stdout.flush()
 
     def __enter__(self):
