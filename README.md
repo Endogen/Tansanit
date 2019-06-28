@@ -1,11 +1,31 @@
 # Tansanit
 Command line wallet for the [Bismuth](https://bismuth.cz) cryptocurrency (BIS)
 
+#### Supported Operating Systems
+- macOS
+- Linux
+- Windows (no command autocomplete)
+
+## Prerequisites
+The wallet will only work with **Python 3**. To be able to use the wallet, the required Python modules mentioned in `requirements.txt` have to be installed. Install them with:
+
+```
+pip3 install -r requirements.txt
+```
+
 ## Starting
 Start Tansanit on the command line
 
+#### Linux / macOS
+
 ```
 ./tansanit.py
+```
+
+#### Linux / macOS / Windows
+
+```
+python3 tansanit.py
 ```
 
 ## Arguments
