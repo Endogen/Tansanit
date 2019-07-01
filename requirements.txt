@@ -1,3 +1,4 @@
+qrcode
 pyfiglet
 argparse
 PyInquirer
