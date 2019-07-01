@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+import qrcode
 import logging
 import threading
 
@@ -214,6 +215,15 @@ class Tansanit(Cmd):
                     print("Transaction couldn't be send")
         else:
             print("No selection")
+
+    def do_receive(self, args):
+        """ Show QR-Code to receive BIS """
+
+        address = self.client.wallet()["address"]
+
+        qr = qrcode.QRCode()
+        qr.add_data(address)
+        qr.print_ascii()
 
     def do_balance(self, args):
         """ Show wallet balance """
