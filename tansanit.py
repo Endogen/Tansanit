@@ -237,11 +237,11 @@ class Tansanit(Cmd):
             else:
                 trx['recipient'] = f"{trx['recipient']} >> loaded"
 
-            msg += f"Block:     {trx['block_height']}\n" \
-                   f"Timestamp: {trx['timestamp']}\n" \
+            msg += f"Amount:    {trx['amount']}\n" \
+                   f"Block:     {trx['block_height']}\n" \
                    f"From:      {trx['address']}\n" \
                    f"To:        {trx['recipient']}\n" \
-                   f"Amount:    {trx['amount']}\n" \
+                   f"Timestamp: {trx['timestamp']}\n" \
                    f"Trx ID:    {trx['signature'][:56]}\n" \
                    f"Fee:       {trx['fee']}\n" \
                    f"Operation: {trx['operation']}\n\n"
