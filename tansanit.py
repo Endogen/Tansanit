@@ -130,35 +130,42 @@ class Tansanit(Cmd):
         """ Show server list """
 
         result = self.client.info()
+
+        for s in result["full_servers_list"]:
+            ip, port, load, height = s['ip'], s['port'], s['load'], s['height']
+            print(f"IP: {ip:<16} Port: {port:<5} Load: {load:<3} Height: {height}")
+
+    def do_connect(self, args):
+        """ Select server to connect with """
+
+        result = self.client.info()
         s_list = list()
 
         for s in result["full_servers_list"]:
             ip, port, load, height = s['ip'], s['port'], s['load'], s['height']
             s_list.append(f"IP: {ip:<16} Port: {port:<5} Load: {load:<3} Height: {height}")
 
-        if args and args.lower() == "select":
-            question = [
-                {
-                    'type': 'list',
-                    'name': 'servers',
-                    'message': f"Select a server to use",
-                    'choices': s_list
-                }
-            ]
+        question = [
+            {
+                'type': 'list',
+                'name': 'servers',
+                'message': f"Select a server to connect with",
+                'choices': s_list
+            }
+        ]
 
-            result = prompt(question)
+        result = prompt(question)
 
-            if result:
-                server = list(filter(None, result["servers"].split(" ")))
-                connect_to = f"{server[1].strip()}:{server[3].strip()}"
-                result = self.client.set_server(connect_to)
-                if connect_to == result:
-                    print("DONE!")
-                else:
-                    print(result)
+        if result:
+            server = list(filter(None, result["servers"].split(" ")))
+            selected = f"{server[1].strip()}:{server[3].strip()}"
+            result = self.client.set_server(selected)
+            if selected == result:
+                print("DONE!")
+            else:
+                print(result)
         else:
-            for server in s_list:
-                print(server)
+            print("No selection")
 
     def do_status(self, args):
         """ Show server status """
@@ -196,11 +203,16 @@ class Tansanit(Cmd):
 
         result = prompt(question)
 
-        if result and result[question[0]["name"]] == "Yes":
-            result = self.client.send(address, float(amount))
-            print(f"\nDONE! Trx: {result}\n")
+        if result:
+            if result[question[0]["name"]] == "Yes":
+                reply = self.client.send(address, float(amount))
+
+                if reply:
+                    print(f"\nDONE! TRXID: {reply}\n")
+                else:
+                    print("Transaction couldn't be send")
         else:
-            print(result)
+            print("No selection")
 
     def do_balance(self, args):
         """ Show wallet balance """
