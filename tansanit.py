@@ -52,14 +52,14 @@ class Tansanit(Cmd):
             self.client.get_server()
 
     def _parse_args(self):
-        desc = "Command line wallet for Bismuth (BIS)"
+        desc = "Tansanit - command line wallet for Bismuth (BIS)"
         parser = ArgumentParser(description=desc)
 
         # Wallet
         parser.add_argument(
             "-w",
             dest="wallet",
-            help="wallet file location",
+            help="set wallet file location",
             required=False,
             default="wallet.der")
 
