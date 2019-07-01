@@ -9,6 +9,7 @@ import threading
 from cmd import Cmd
 from pyfiglet import Figlet
 from PyInquirer import prompt
+from datetime import datetime
 from argparse import ArgumentParser
 from bismuthclient.bismuthutil import BismuthUtil
 from bismuthclient.bismuthclient import BismuthClient
@@ -236,6 +237,10 @@ class Tansanit(Cmd):
                 trx['address'] = f"{trx['address']} >> loaded"
             else:
                 trx['recipient'] = f"{trx['recipient']} >> loaded"
+
+            dt = trx['timestamp']
+            dt = datetime.utcfromtimestamp(dt).strftime('%Y-%m-%d %H:%M:%S')
+            trx['timestamp'] = f"{dt} UTC"
 
             msg += f"Amount:    {trx['amount']}\n" \
                    f"Block:     {trx['block_height']}\n" \
