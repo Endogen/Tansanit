@@ -15,14 +15,10 @@ from bismuthclient.bismuthclient import BismuthClient
 from logging.handlers import TimedRotatingFileHandler
 
 
-# TODO: Support encrypted wallets
-# TODO: Add possibility to convert wallets: der <--> json
 class Tansanit(Cmd):
 
     __version__ = "0.2"
 
-    WALLET_DER = "wallet.der"
-    WALLET_ENC = "wallet.json"
     LOG_FILE = os.path.join("log", "tansanit.log")
 
     def __init__(self):
@@ -37,10 +33,14 @@ class Tansanit(Cmd):
         # Log arguments
         logging.debug(self.args)
 
+        # Create folders if needed
+        path = os.path.dirname(self.args.wallet)
+        path and os.makedirs(path, exist_ok=True)
+
         # Create and load wallet
         self.client = BismuthClient()
-        self.client.new_wallet()
-        self.client.load_wallet()
+        self.client.new_wallet(self.args.wallet)
+        self.client.load_wallet(self.args.wallet)
 
         # Connect to server
         if self.args.server:
@@ -53,6 +53,14 @@ class Tansanit(Cmd):
     def _parse_args(self):
         desc = "Command line wallet for Bismuth (BIS)"
         parser = ArgumentParser(description=desc)
+
+        # Wallet
+        parser.add_argument(
+            "-w",
+            dest="wallet",
+            help="wallet file location",
+            required=False,
+            default="wallet.der")
 
         # Server
         parser.add_argument(
@@ -70,15 +78,6 @@ class Tansanit(Cmd):
             choices=[10, 20, 30, 40, 50],
             help="Debug, Info, Warning, Error, Critical",
             default=60,
-            required=False)
-
-        # Encrypted
-        parser.add_argument(
-            "-e",
-            dest="encrypted",
-            action="store_true",
-            help="use encrypted wallet",
-            default=False,
             required=False)
 
         return parser.parse_args()
@@ -105,24 +104,73 @@ class Tansanit(Cmd):
 
             logger.addHandler(file_log)
 
+    def precmd(self, line):
+        print()
+        return line
+
+    def postcmd(self, stop, line):
+        print()
+        return stop
+
     def do_version(self, args):
         """ Show Tansanit version """
-        self._prnt(f"Tansanit Version {self.__version__}")
+
+        print(f"Tansanit Version {self.__version__}")
 
     def do_wallet(self, args):
         """ Show wallet info """
-        self._prnt(self.client.wallet())
+
+        result = self.client.wallet()
+
+        print(f"Address:   {result['address']}\n"
+              f"Location:  {os.path.abspath(result['file'])}\n"
+              f"Encrypted: {result['encrypted']}")
 
     def do_servers(self, args):
         """ Show server list """
-        self._prnt(self.client.servers_list)
+
+        result = self.client.info()
+        s_list = list()
+
+        for s in result["full_servers_list"]:
+            ip, port, load, height = s['ip'], s['port'], s['load'], s['height']
+            s_list.append(f"IP: {ip:<16} Port: {port:<5} Load: {load:<3} Height: {height}")
+
+        if args and args.lower() == "select":
+            question = [
+                {
+                    'type': 'list',
+                    'name': 'servers',
+                    'message': f"Select a server to use",
+                    'choices': s_list
+                }
+            ]
+
+            result = prompt(question)
+
+            if result:
+                server = list(filter(None, result["servers"].split(" ")))
+                connect_to = f"{server[1].strip()}:{server[3].strip()}"
+                result = self.client.set_server(connect_to)
+                if connect_to == result:
+                    print("DONE!")
+                else:
+                    print(result)
+        else:
+            for server in s_list:
+                print(server)
 
     def do_status(self, args):
         """ Show server status """
-        self._prnt(self.client.info())
+
+        result = self.client.info()
+
+        print(f"Server:    {result['server']}\n"
+              f"Connected: {result['connected']}")
 
     def do_send(self, args):
         """ Send coins to address """
+
         arg_list = args.split(" ")
         address = arg_list[0]
         amount = arg_list[1]
@@ -131,7 +179,7 @@ class Tansanit(Cmd):
         if not BismuthUtil.valid_address(address):
             msg = f"'{address}' is not a valid address"
             logging.error(msg)
-            self._prnt(msg)
+            print(f"\n{msg}\n")
             return
 
         question = [
@@ -147,21 +195,45 @@ class Tansanit(Cmd):
         ]
 
         result = prompt(question)
+
         if result and result[question[0]["name"]] == "Yes":
-            self._prnt(self.client.send(address, float(amount)))
+            result = self.client.send(address, float(amount))
+            print(f"\nDONE! Trx: {result}\n")
+        else:
+            print(result)
 
     def do_balance(self, args):
         """ Show wallet balance """
-        self._prnt(f"{self.client.balance(for_display=True)} BIS")
+
+        print(f"{self.client.balance(for_display=True)} BIS")
 
     def do_transactions(self, args):
         """ Show latest transactions """
-        self._prnt(self.client.latest_transactions())
+
+        result = self.client.latest_transactions()
+
+        if not result:
+            print("No transactions yet")
+            return
+
+        msg = str()
+        for trx in result:
+            msg += f"Block:     {trx['block_height']}\n" \
+                   f"Timestamp: {trx['timestamp']}\n" \
+                   f"From:      {trx['address']}\n" \
+                   f"To:        {trx['recipient']}\n" \
+                   f"Amount:    {trx['amount']}\n" \
+                   f"Trx ID:    {trx['signature'][:56]}\n" \
+                   f"Fee:       {trx['fee']}\n" \
+                   f"Operation: {trx['operation']}\n\n"
+
+        print(msg[:-2])
 
     def do_refresh(self, args):
         """ Refresh server list """
+
         self.client.refresh_server_list()
-        self._prnt(self.client.servers_list)
+        self.do_servers(args)
 
     def do_quit(self, args):
         """ Quit Tansanit """
@@ -179,11 +251,9 @@ class Tansanit(Cmd):
         ]
 
         result = prompt(question)
+
         if result and result[question[0]["name"]] == "Yes":
             raise SystemExit
-
-    def _prnt(self, obj):
-        print(f"\n{obj}\n")
 
 
 class Spinner:
@@ -193,7 +263,8 @@ class Spinner:
     @staticmethod
     def spinning_cursor():
         while 1:
-            for cursor in '|/-\\': yield cursor
+            for cursor in '|/-\\':
+                yield cursor
 
     def __init__(self, delay=None):
         self.spinner_generator = self.spinning_cursor()
@@ -205,7 +276,7 @@ class Spinner:
             sys.stdout.write(f"{next(self.spinner_generator)} Loading...")
             sys.stdout.flush()
             time.sleep(self.delay)
-            sys.stdout.write('\b\b\b\b\b\b\b\b\b\b\b\b')
+            sys.stdout.write('\b'*12)
             sys.stdout.flush()
 
     def __enter__(self):
