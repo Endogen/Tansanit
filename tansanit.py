@@ -216,8 +216,15 @@ class Tansanit(Cmd):
             print("No transactions yet")
             return
 
+        address = self.client.wallet()["address"]
+
         msg = str()
         for trx in result:
+            if trx['address'] == address:
+                trx['address'] = f"{trx['address']} >> loaded"
+            else:
+                trx['recipient'] = f"{trx['recipient']} >> loaded"
+
             msg += f"Block:     {trx['block_height']}\n" \
                    f"Timestamp: {trx['timestamp']}\n" \
                    f"From:      {trx['address']}\n" \
