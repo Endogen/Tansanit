@@ -180,15 +180,20 @@ class Tansanit(Cmd):
     def do_send(self, args):
         """ Send coins to address """
 
-        arg_list = args.split(" ")
-        address = arg_list[0]
-        amount = arg_list[1]
+        if args and len(list(filter(None, args.split(" ")))) > 1:
+            arg_list = args.split(" ")
+            address = arg_list[0]
+            amount = arg_list[1]
+        else:
+            print("You need to provide arguments\n"
+                  "send <address> <amount>")
+            return
 
         # Check if wallet address is valid
         if not BismuthUtil.valid_address(address):
             msg = f"'{address}' is not a valid address"
             logging.error(msg)
-            print(f"\n{msg}\n")
+            print(msg)
             return
 
         question = [
@@ -223,7 +228,11 @@ class Tansanit(Cmd):
 
         qr = qrcode.QRCode()
         qr.add_data(address)
-        qr.print_ascii()
+
+        if args and args.lower() == "tty":
+            qr.print_tty()
+        else:
+            qr.print_ascii(invert=True)
 
     def do_balance(self, args):
         """ Show wallet balance """
