@@ -242,33 +242,51 @@ class Tansanit(Cmd):
     def do_transactions(self, args):
         """ Show latest transactions """
 
+        reverse = False
+        if args and len(list(filter(None, args.split(" ")))) > 0:
+            if args.lower() == "reverse":
+                reverse = True
+
         result = self.client.latest_transactions()
 
         if not result:
             print("No transactions yet")
             return
 
-        address = self.client.wallet()["address"]
+        my_address = self.client.wallet()["address"]
 
         msg = str()
         for trx in result:
-            if trx['address'] == address:
-                trx['address'] = f"{trx['address']} >> loaded"
+            trx_amount = trx['amount']
+            trx_height = trx['block_height']
+            trx_address = trx['address']
+            trx_recipient = trx['recipient']
+            trx_timestamp = trx['timestamp']
+            trx_signature = trx['signature']
+            trx_operation = trx['operation']
+            trx_fee = trx['fee']
+
+            if trx_address == my_address:
+                trx_address = f"{trx_address} >> loaded"
             else:
-                trx['recipient'] = f"{trx['recipient']} >> loaded"
+                trx_recipient = f"{trx_recipient} >> loaded"
 
-            dt = trx['timestamp']
-            dt = datetime.utcfromtimestamp(dt).strftime('%Y-%m-%d %H:%M:%S')
-            trx['timestamp'] = f"{dt} UTC"
+            dt = datetime.utcfromtimestamp(trx_timestamp).strftime('%Y-%m-%d %H:%M:%S')
+            trx_timestamp = f"{dt} UTC"
 
-            msg += f"Amount:    {trx['amount']}\n" \
-                   f"Block:     {trx['block_height']}\n" \
-                   f"From:      {trx['address']}\n" \
-                   f"To:        {trx['recipient']}\n" \
-                   f"Timestamp: {trx['timestamp']}\n" \
-                   f"Trx ID:    {trx['signature'][:56]}\n" \
-                   f"Fee:       {trx['fee']}\n" \
-                   f"Operation: {trx['operation']}\n\n"
+            trx_msg = f"Amount:    {trx_amount}\n" \
+                      f"Block:     {trx_height}\n" \
+                      f"From:      {trx_address}\n" \
+                      f"To:        {trx_recipient}\n" \
+                      f"Timestamp: {trx_timestamp}\n" \
+                      f"Trx ID:    {trx_signature[:56]}\n" \
+                      f"Fee:       {trx_fee}\n" \
+                      f"Operation: {trx_operation}\n\n"
+
+            if reverse:
+                msg = msg + trx_msg
+            else:
+                msg = trx_msg + msg
 
         print(msg[:-2])
 
