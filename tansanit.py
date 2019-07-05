@@ -210,6 +210,7 @@ class Tansanit(Cmd):
 
         if result:
             if result[question[0]["name"]] == "Yes":
+                # recipient, amount, operation, data
                 reply = self.client.send(address, float(amount))
 
                 if reply:
