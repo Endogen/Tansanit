@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 
-import os
-import sys
 import time
 import qrcode
-import logging
 import threading
+import logging
+import sys
+import os
 
 from cmd import Cmd
 from pyfiglet import Figlet
 from PyInquirer import prompt
-from datetime import datetime
+from bisclient import BisClient
 from argparse import ArgumentParser
 from bismuthclient.bismuthutil import BismuthUtil
-from bismuthclient.bismuthclient import BismuthClient
 from logging.handlers import TimedRotatingFileHandler
+from datetime import datetime
 
 
 class Tansanit(Cmd):
@@ -36,13 +36,11 @@ class Tansanit(Cmd):
         logging.debug(self.args)
 
         # Create folders if needed
-        path = os.path.dirname(self.args.wallet)
-        path and os.makedirs(path, exist_ok=True)
+        wallet_path = os.path.dirname(self.args.wallet)
+        wallet_path and os.makedirs(wallet_path, exist_ok=True)
 
         # Create and load wallet
-        self.client = BismuthClient()
-        self.client.new_wallet(self.args.wallet)
-        self.client.load_wallet(self.args.wallet)
+        self.client = BisClient(self.args.wallet)
 
         # Connect to server
         if self.args.server:
@@ -62,7 +60,7 @@ class Tansanit(Cmd):
             dest="wallet",
             help="set wallet file location",
             required=False,
-            default="wallet.der")
+            default="wallet.json")
 
         # Server
         parser.add_argument(
@@ -124,7 +122,7 @@ class Tansanit(Cmd):
 
         result = self.client.wallet()
 
-        print(f"Address:   {result['address']}\n"
+        print(f"Address:   {self.client.address}\n"
               f"Location:  {os.path.abspath(result['file'])}\n"
               f"Encrypted: {result['encrypted']}")
 
@@ -224,10 +222,8 @@ class Tansanit(Cmd):
     def do_receive(self, args):
         """ Show QR-Code to receive BIS """
 
-        address = self.client.wallet()["address"]
-
         qr = qrcode.QRCode()
-        qr.add_data(address)
+        qr.add_data(self.client.address)
 
         if args and args.lower() == "tty":
             qr.print_tty()
@@ -253,8 +249,6 @@ class Tansanit(Cmd):
             print("No transactions yet")
             return
 
-        my_address = self.client.wallet()["address"]
-
         msg = str()
         for trx in result:
             trx_amount = trx['amount']
@@ -266,7 +260,7 @@ class Tansanit(Cmd):
             trx_operation = trx['operation']
             trx_fee = trx['fee']
 
-            if trx_address == my_address:
+            if trx_address == self.client.address:
                 trx_address = f"{trx_address} >> loaded"
             else:
                 trx_recipient = f"{trx_recipient} >> loaded"
@@ -293,7 +287,7 @@ class Tansanit(Cmd):
     def do_refresh(self, args):
         """ Refresh server list """
 
-        self.client.refresh_server_list()
+        self.client.refresh_servers()
         self.do_servers(args)
 
     def do_quit(self, args):
