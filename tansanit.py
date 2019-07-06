@@ -164,8 +164,6 @@ class Tansanit(Cmd):
                 print("DONE!")
             else:
                 print(result)
-        else:
-            print("No selection")
 
     def do_status(self, args):
         """ Show server status """
@@ -175,6 +173,7 @@ class Tansanit(Cmd):
         print(f"Server:    {result['server']}\n"
               f"Connected: {result['connected']}")
 
+    # TODO: Integrieren: reject_empty_msg() aus bismultiwallet
     def do_send(self, args):
         """ Send coins to address """
 
@@ -217,8 +216,6 @@ class Tansanit(Cmd):
                     print(f"\nDONE! TRXID: {reply}\n")
                 else:
                     print("Transaction couldn't be send")
-        else:
-            print("No selection")
 
     def do_receive(self, args):
         """ Show QR-Code to receive BIS """
@@ -262,9 +259,9 @@ class Tansanit(Cmd):
             trx_fee = trx['fee']
 
             if trx_address == self.client.address:
-                trx_address = f"{trx_address} >> loaded"
+                trx_address = f"{trx_address} >> selected"
             else:
-                trx_recipient = f"{trx_recipient} >> loaded"
+                trx_recipient = f"{trx_recipient} >> selected"
 
             dt = datetime.utcfromtimestamp(trx_timestamp).strftime('%Y-%m-%d %H:%M:%S')
             trx_timestamp = f"{dt} UTC"
@@ -274,6 +271,7 @@ class Tansanit(Cmd):
                       f"From:      {trx_address}\n" \
                       f"To:        {trx_recipient}\n" \
                       f"Timestamp: {trx_timestamp}\n" \
+                      f"Trx ID:    {trx_signature[:56]}\n" \
                       f"Trx ID:    {trx_signature[:56]}\n" \
                       f"Fee:       {trx_fee}\n" \
                       f"Operation: {trx_operation}\n\n"
@@ -290,6 +288,134 @@ class Tansanit(Cmd):
 
         self.client.refresh_servers()
         self.do_servers(args)
+
+    def do_addresses(self, args):
+        """ List wallet addresses """
+
+        for address in self.client.addresses():
+            addr = address['address']
+            label = address['label']
+
+            label = f"({label})" if label else "N/A"
+
+            msg = f"{addr} {label}"
+
+            if addr == self.client.address:
+                msg += " >> selected"
+
+            print(msg)
+
+    # TODO: Integrate Spinner
+    def do_new(self, args):
+        """ Create new address """
+
+        question = [
+            {
+                'type': 'input',
+                'name': 'label',
+                'message': 'Label:',
+            }
+        ]
+
+        res_label = prompt(question)
+
+        if res_label:
+            label = res_label['label'] if res_label['label'] else ''
+        else:
+            return
+
+        question = [
+            {
+                'type': 'password',
+                'name': 'password1',
+                'message': 'Password 1/2:'
+            },
+            {
+                'type': 'password',
+                'name': 'password2',
+                'message': 'Password 2/2:'
+            }
+        ]
+
+        res_pass = prompt(question)
+
+        if res_pass:
+            password1 = res_pass['password1'] if res_pass['password1'] else ''
+            password2 = res_pass['password2'] if res_pass['password2'] else ''
+
+            if password1 != password2:
+                print("Passwords don't match!")
+                return
+        else:
+            return
+
+        question = [
+            {
+                'type': 'input',
+                'name': 'salt',
+                'message': 'Salt:',
+            }
+        ]
+
+        res_salt = prompt(question)
+
+        if res_salt:
+            salt = res_salt['salt'] if res_salt['salt'] else ''
+        else:
+            return
+
+        self.client.new_address(label, password1, salt)
+
+    def do_change(self, args):
+        """ Change currently active addresses """
+
+        if args:
+            if BismuthUtil.valid_address(args):
+                self.client.set_address(args)
+                print("DONE!")
+            else:
+                print("Address not valid!")
+            return
+
+        addresses = self.client.addresses()
+
+        if len(addresses) < 1:
+            print("At least two addresses are needed")
+            return
+
+        a_list = list()
+        for address in addresses:
+            addr = address['address']
+            label = address['label']
+
+            label = f"({label})" if label else "N/A"
+
+            msg = f"{addr} {label}"
+
+            if addr == self.client.address:
+                msg += " >> selected"
+
+            a_list.append(msg)
+
+        question = [
+            {
+                'type': 'list',
+                'name': 'addresses',
+                'message': f"Select an address to use",
+                'choices': a_list
+            }
+        ]
+
+        result = prompt(question)
+
+        if result:
+            try:
+                addresses = list(filter(None, result["addresses"].split(" ")))
+                self.client.set_address(addresses[0].strip())
+                print("DONE!")
+            except Exception as e:
+                logging.error(e)
+                print(str(e))
 
     def do_quit(self, args):
         """ Quit Tansanit """

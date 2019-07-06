@@ -3,6 +3,7 @@ import json
 import random
 import sys
 import os
+import logging
 
 from os import path
 from time import time
@@ -18,9 +19,9 @@ class BisMultiWallet:
     __version__ = '0.0.41'
 
     __slots__ = ('_address', '_wallet_file', 'verbose', '_infos', "verbose", "key", "public_key",
-                 '_addresses', '_locked', '_data', '_master_password')
+                 '_addresses', '_locked', '_data', '_master_password', 'log')
 
-    def __init__(self, wallet_file: str = 'wallet.json', verbose: bool = False, seed: str = None):
+    def __init__(self, wallet_file: str = 'wallet.json', verbose: bool = False, seed: str = None, log=None):
         self._wallet_file = None
         self._address = None
         self._infos = None
@@ -31,6 +32,7 @@ class BisMultiWallet:
         self.verbose = verbose
         self._addresses = []
         self._master_password = ''
+        self.log = log if log else logging
         self.load(wallet_file, seed=seed)
 
     def info(self):
@@ -117,7 +119,8 @@ class BisMultiWallet:
             self._master_password = password
             self._infos['encrypted'] = True
             self._locked = False
-        except:
+        except Exception as e:
+            self.log.error(e)
             raise
 
     def lock(self):
@@ -152,12 +155,13 @@ class BisMultiWallet:
             decoded = json.loads(decrypt(password, b64decode(self._data['spend'].encode('utf-8'))).decode('utf-8'))
             self._infos['spend'] = decoded
         except Exception as e:
+            self.log.error(e)
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)
             raise RuntimeWarning("Password does not seem to match")
 
-    def new_address(self, label: str='', password: str='', salt: str=''):
+    def new_address(self, label: str = '', password: str = '', salt: str = ''):
         """
         Add a new address to the wallet (and save it)
         """
@@ -172,11 +176,11 @@ class BisMultiWallet:
             encrypted = b64encode(encrypt(self._master_password, content, level=1)).decode('utf-8')
             self._data['addresses'].append(encrypted)
         else:
-            print('1')
+            print(f"DONE! New address: {keys['address']}", end="\r")
             self._data['addresses'].append(keys)
         self.save()
 
-    def set_label(self, address:str ='', label: str=''):
+    def set_label(self, address: str = '', label: str = ''):
         """
         Add a new address to the wallet (and save it)
         """
@@ -211,7 +215,7 @@ class BisMultiWallet:
         self._infos['spend'] = spend
         self.save()
 
-    def get_der_key(self, wallet_file: str='wallet.der', password: str=''):
+    def get_der_key(self, wallet_file: str = 'wallet.der', password: str = ''):
         try:
             with open(wallet_file, 'r') as f:
                 content = json.load(f)
@@ -227,6 +231,7 @@ class BisMultiWallet:
                 return {"private_key": private_key, "public_key": public_key, "address": address, "label":'',
                         'timestamp': int(time())}
         except Exception as e:
+            self.log.error(e)
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             print(exc_type, fname, exc_tb.tb_lineno)

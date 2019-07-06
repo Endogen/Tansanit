@@ -13,7 +13,7 @@ from bismuthclient import bismuthcrypto
 from bismuthclient import rpcconnections
 from bismultiwallet import BisMultiWallet
 from bismuthclient.bismuthformat import TxFormatter, AmountFormatter
-from os import path, scandir
+from os import path
 
 
 """
@@ -25,7 +25,7 @@ class BisClient:
 
     __version__ = '0.0.44'
 
-    __slots__ = ('initial_servers_list', 'servers', 'log', 'address',
+    __slots__ = ('initial_servers', 'servers', 'log', 'address',
                  '_current_server', 'wallet_file', '_wallet', '_connection', '_cache',
                  'verbose', 'full_servers', 'time_drift', '_alias_cache', '_alias_cache_file')
 
@@ -34,11 +34,11 @@ class BisClient:
                         '49ca873779b36c4a503562ebf5697fca331685d79fd3deef64a46888',
                         'edf2d63cdf0b6275ead22c9e6d66aa8ea31dc0ccb367fad2e7c08a25']
 
-    def __init__(self, wallet_file='wallet.json', servers=None, app_log=None, verbose=False):
+    def __init__(self, wallet_file='wallet.json', servers=None, log=None, verbose=False):
         self.verbose = verbose
         self.servers = servers if servers else []
-        self.initial_servers_list = self.servers
-        self.log = app_log if app_log else logging
+        self.initial_servers = self.servers
+        self.log = log if log else logging
         self.wallet_file = None
         self._wallet = None
         self.address = None
@@ -146,11 +146,11 @@ class BisClient:
         Returns the first connectible server.
         """
         # Use the API or bench to get the best one.
-        if not len(self.initial_servers_list):
-            self.full_servers = bismuthapi.get_wallet_servers_legacy(self.initial_servers_list, self.log, minver='0.1.5', as_dict=True)
+        if not len(self.initial_servers):
+            self.full_servers = bismuthapi.get_wallet_servers_legacy(self.initial_servers, self.log, minver='0.1.5', as_dict=True)
             self.servers = ["{}:{}".format(server['ip'], server['port']) for server in self.full_servers]
         else:
-            self.servers = self.initial_servers_list
+            self.servers = self.initial_servers
             self.full_servers = [
                 {
                     "ip": server.split(':')[0],
@@ -186,7 +186,7 @@ class BisClient:
         """
         backup = list(self.full_servers)
         self.full_servers = bismuthapi.get_wallet_servers_legacy(
-            self.initial_servers_list,
+            self.initial_servers,
             self.log,
             minver='0.1.5', as_dict=True)
 
@@ -201,21 +201,6 @@ class BisClient:
         self.servers = ["{}:{}".format(server['ip'], server['port']) for server in self.full_servers]
 
     # --- wallet functions
-
-    def list_wallets(self, scan_dir='wallets'):
-        """
-        Returns a list of dict for each wallet file found in the dir to scan.
-
-        Each dict has the following keys: 'file', 'address', 'encrypted'
-
-        :param scan_dir: string, the dir to scan for wallet (*.der files).
-        """
-        wallets = []
-        for entry in scandir(scan_dir):
-            if entry.name.endswith('.der') and entry.is_file():
-                wallets.append(self._wallet.wallet_preview(entry.path))
-        # TODO: sorts by name
-        return wallets
 
     def latest_transactions(self, num=10, offset=0, for_display=False):
         """
@@ -236,8 +221,8 @@ class BisClient:
                 transactions = self.command("addlistlim", [self.address, num])
             else:
                 transactions = self.command("addlistlimfrom", [self.address, num, offset])
-        except:
-            # TODO: Handle retry, at least error message.
+        except Exception as e:
+            self.log.error(e)
             transactions = []
 
         json_data = [TxFormatter(tx).to_json(for_display=for_display) for tx in transactions]
@@ -421,7 +406,7 @@ class BisClient:
         self.wallet_file = None
         self.address = None
         self._wallet = None
-        self._wallet = BisMultiWallet(wallet_file, verbose=self.verbose)
+        self._wallet = BisMultiWallet(wallet_file, verbose=self.verbose, log=self.log)
         if len(self._wallet._data["addresses"]) == 0:
             # Create a first address by default
             self._wallet.new_address(label="default")
@@ -430,13 +415,22 @@ class BisClient:
             self.clear_cache()
         self.address = self._wallet.address
 
-    def set_address(self, address: str=''):
+    def set_address(self, address: str = ''):
         if not type(self._wallet) == BisMultiWallet:
-            raise RuntimeWarning("Not a Multiwallet")
+            raise RuntimeWarning("Not a MultiWallet")
         self._wallet.set_address(address)
         if self.address != self._wallet.address:
             self.clear_cache()
         self.address = self._wallet.address
+
+    def new_address(self, label, password, salt):
+        try:
+            self._wallet.new_address(label, password, salt)
+        except RuntimeError as e:
+            print(str(e))  # TODO: Test
+
+    def addresses(self):
+        return self._wallet._data['addresses']
 
     def wallet(self):
         """
