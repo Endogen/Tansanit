@@ -432,6 +432,13 @@ class BisClient:
     def addresses(self):
         return self._wallet._data['addresses']
 
+    def import_der(self, wallet_der='wallet.der', label='', password=''):
+        try:
+            self._wallet.import_der(wallet_der=wallet_der, label=label, source_password=password)
+        except Exception as e:
+            print(str(e))
+            raise e
+
     def wallet(self):
         """
         returns info about the currently loaded wallet

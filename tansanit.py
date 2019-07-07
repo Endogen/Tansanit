@@ -15,8 +15,10 @@ from argparse import ArgumentParser
 from bismuthclient.bismuthutil import BismuthUtil
 from logging.handlers import TimedRotatingFileHandler
 from datetime import datetime
+from bismuthclient.simplecrypt import DecryptionException
 
 
+# TODO: Save last selected address
 class Tansanit(Cmd):
 
     __version__ = "0.2"
@@ -364,6 +366,7 @@ class Tansanit(Cmd):
         else:
             return
 
+        # TODO: Need try catch block?
         self.client.new_address(label, password1, salt)
 
     def do_change(self, args):
@@ -416,6 +419,61 @@ class Tansanit(Cmd):
             except Exception as e:
                 logging.error(e)
                 print(str(e))
+
+    def do_import(self, args):
+        """ Import legacy .der wallet """
+
+        legacy_wallet = 'wallet.der'
+
+        if not os.path.isfile(legacy_wallet):
+            print(f"No '{legacy_wallet}' file found!")
+            return
+
+        question = [
+            {
+                'type': 'input',
+                'name': 'label',
+                'message': 'Label:',
+            }
+        ]
+
+        res_label = prompt(question)
+
+        if res_label:
+            label = res_label['label'] if res_label['label'] else ''
+        else:
+            return
+
+        question = [
+            {
+                'type': 'password',
+                'name': 'password',
+                'message': 'Password:'
+            }
+        ]
+
+        res_pass = prompt(question)
+
+        if res_pass:
+            password = res_pass['password'] if res_pass['password'] else ''
+        else:
+            return
+
+        try:
+            self.client.import_der(label=label, password=password)
+            print("DONE! Successfully imported")
+        except:
+            pass
+
+    def do_label(self, args):
+        """ Change label of address """
+        # TODO: Implement
+        pass
+
+    def do_remove(self, args):
+        """ Remove address """
+        # TODO: Implement
+        pass
 
     def do_quit(self, args):
         """ Quit Tansanit """

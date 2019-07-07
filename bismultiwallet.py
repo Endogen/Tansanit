@@ -221,20 +221,20 @@ class BisMultiWallet:
                 content = json.load(f)
                 address = content['Address']  # Warning case change!!!
                 if password:
-                    content['Private Key'] = decrypt(password,b64decode(content['Private Key'])).decode('utf-8')
+                    content['Private Key'] = decrypt(password, b64decode(content['Private Key'])).decode('utf-8')
 
                 key = RSA.importKey(content['Private Key'])
                 public_key = content['Public Key']
                 private_key = content['Private Key']
                 address = content["Address"]
                 # TODO: check that address matches rebuilded pubkey
-                return {"private_key": private_key, "public_key": public_key, "address": address, "label":'',
+                return {"private_key": private_key,
+                        "public_key": public_key,
+                        "address": address,
+                        "label": '',
                         'timestamp': int(time())}
         except Exception as e:
             self.log.error(e)
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
             # encrypted
             return None
 
@@ -286,7 +286,6 @@ class BisMultiWallet:
             encrypted = b64encode(encrypt(self._master_password, content, level=1)).decode('utf-8')
             self._data['addresses'].append(encrypted)
         else:
-            print('1')
             self._data['addresses'].append(key)
         self.save()
 
