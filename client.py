@@ -11,7 +11,7 @@ from bismuthclient import lwbench
 from bismuthclient import bismuthapi
 from bismuthclient import bismuthcrypto
 from bismuthclient import rpcconnections
-from bismultiwallet import BisMultiWallet
+from multiwallet import BisMultiWallet
 from bismuthclient.bismuthformat import TxFormatter, AmountFormatter
 from os import path
 

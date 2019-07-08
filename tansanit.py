@@ -10,13 +10,14 @@ import os
 from cmd import Cmd
 from pyfiglet import Figlet
 from PyInquirer import prompt
-from bisclient import BisClient
+from client import BisClient
 from argparse import ArgumentParser
 from bismuthclient.bismuthutil import BismuthUtil
 from logging.handlers import TimedRotatingFileHandler
 from datetime import datetime
 
 
+# TODO: Add 'encrypt' and 'decrypt' commands
 # TODO: Save last selected address
 class Tansanit(Cmd):
 
