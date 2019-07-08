@@ -91,12 +91,12 @@ class BisMultiWallet:
         if wallet_file is None:
             wallet_file = self._wallet_file
         with open(wallet_file, 'w') as f:
-            json.dump(self._data, f)
+            json.dump(self._data, f, indent=4)
 
     def password_ok(self, password: str):
         return password == self._master_password
 
-    def encrypt(self, password:str='', current_password:str=None):
+    def encrypt(self, password: str = '', current_password: str = None):
         """Encrypt - or re-encrypt """
         if len(self._addresses) <= 0:
             raise RuntimeWarning("Can't encrypt empty wallet.")
@@ -269,7 +269,7 @@ class BisMultiWallet:
                 return key
         return None
 
-    def import_der(self, wallet_der: str = "wallet.der", label: str = "", source_password: str = ""):
+    def import_der(self, wallet_der: str = 'wallet.der', label: str = '', source_password: str = ''):
         """Import an existing wallet.der like file into the wallet"""
         if self._infos['encrypted'] and self._locked:
             # TODO: check could be done via a decorator
