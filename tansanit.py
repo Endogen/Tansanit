@@ -15,7 +15,6 @@ from argparse import ArgumentParser
 from bismuthclient.bismuthutil import BismuthUtil
 from logging.handlers import TimedRotatingFileHandler
 from datetime import datetime
-from bismuthclient.simplecrypt import DecryptionException
 
 
 # TODO: Save last selected address
@@ -24,6 +23,8 @@ class Tansanit(Cmd):
     __version__ = "0.2"
 
     LOG_FILE = os.path.join("log", "tansanit.log")
+    SELECTED = "  <-- SELECTED"
+    NO_LABEL = "<no label>"
 
     def __init__(self):
         super().__init__()
@@ -233,7 +234,12 @@ class Tansanit(Cmd):
     def do_balance(self, args):
         """ Show wallet balance """
 
-        print(f"{self.client.balance(for_display=True)} BIS")
+        if args and args.lower() == "all":
+            balance = self.client.global_balance(for_display=True)
+        else:
+            balance = self.client.balance(for_display=True)
+
+        print(f"{balance} BIS")
 
     def do_transactions(self, args):
         """ Show latest transactions """
@@ -296,14 +302,13 @@ class Tansanit(Cmd):
 
         for address in self.client.addresses():
             addr = address['address']
-            label = address['label']
 
-            label = f"({label})" if label else "N/A"
+            label = address['label']
+            label = f"{label}" if label else self.NO_LABEL
 
             msg = f"{addr} {label}"
-
             if addr == self.client.address:
-                msg += " >> selected"
+                msg += self.SELECTED
 
             print(msg)
 
@@ -369,7 +374,7 @@ class Tansanit(Cmd):
         # TODO: Need try catch block?
         self.client.new_address(label, password1, salt)
 
-    def do_change(self, args):
+    def do_select(self, args):
         """ Change currently active addresses """
 
         if args:
@@ -380,36 +385,11 @@ class Tansanit(Cmd):
                 print("Address not valid!")
             return
 
-        addresses = self.client.addresses()
-
-        if len(addresses) < 1:
+        if len(self.client.addresses()) < 1:
             print("At least two addresses are needed")
             return
 
-        a_list = list()
-        for address in addresses:
-            addr = address['address']
-            label = address['label']
-
-            label = f"({label})" if label else "N/A"
-
-            msg = f"{addr} {label}"
-
-            if addr == self.client.address:
-                msg += " >> selected"
-
-            a_list.append(msg)
-
-        question = [
-            {
-                'type': 'list',
-                'name': 'addresses',
-                'message': f"Select an address to use",
-                'choices': a_list
-            }
-        ]
-
-        result = prompt(question)
+        result = self._select_address()
 
         if result:
             try:
@@ -466,12 +446,32 @@ class Tansanit(Cmd):
             pass
 
     def do_label(self, args):
-        """ Change label of address """
-        # TODO: Implement
-        pass
+        """ Change label of selected address """
+
+        question = [
+            {
+                'type': 'input',
+                'name': 'label',
+                'message': 'New label:',
+            }
+        ]
+
+        res_label = prompt(question)
+
+        if res_label:
+            if not res_label['label']:
+                print('No label provided')
+                return
+
+            label = res_label['label']
+        else:
+            return
+
+        self.client._wallet.set_label(self.client.address, label)
+        print("DONE! Changed label")
 
     def do_remove(self, args):
-        """ Remove address """
+        """ Remove address from wallet """
         # TODO: Implement
         pass
 
@@ -494,6 +494,33 @@ class Tansanit(Cmd):
 
         if result and result[question[0]["name"]] == "Yes":
             raise SystemExit
+
+    def _select_address(self, name='addresses', message='Select an address'):
+        addresses = self.client.addresses()
+
+        address_list = list()
+        for address_data in addresses:
+            address = address_data['address']
+
+            label = address_data['label']
+            label = f"{label}" if label else self.NO_LABEL
+
+            msg = f"{address} {label}"
+            if address == self.client.address:
+                msg += self.SELECTED
+
+            address_list.append(msg)
+
+        question = [
+            {
+                'type': 'list',
+                'name': name,
+                'message': message,
+                'choices': address_list
+            }
+        ]
+
+        return prompt(question)
 
 
 class Spinner:
