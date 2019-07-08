@@ -199,7 +199,7 @@ class BisMultiWallet:
                     self._data['addresses'][i]['label'] = label
         self.save()
 
-    def set_spend(self, spend_type:str, spend_value: str, password: str=''):
+    def set_spend(self, spend_type: str, spend_value: str, password: str = ''):
         """Saves the spend protection if the pass is ok"""
         if not self.password_ok(password):
             raise RuntimeWarning("Password does not seem to match")
@@ -238,7 +238,7 @@ class BisMultiWallet:
             # encrypted
             return None
 
-    def set_address(self, address: str=''):
+    def set_address(self, address: str = ''):
         """Select an address from the wallet"""
         if self._infos['encrypted'] and self._locked:
             # TODO: check could be done via a decorator
@@ -251,7 +251,7 @@ class BisMultiWallet:
         self._address = address
         self._infos['address'] = address
 
-    def is_address_in_wallet(self, address: str=''):
+    def is_address_in_wallet(self, address: str = ''):
         if self._infos['encrypted'] and self._locked:
             # TODO: check could be done via a decorator
             raise RuntimeError("Wallet must be unlocked")
@@ -260,7 +260,7 @@ class BisMultiWallet:
                 return True
         return False
 
-    def get_key(self, address: str=''):
+    def get_key(self, address: str = ''):
         if self._infos['encrypted'] and self._locked:
             # TODO: check could be done via a decorator
             raise RuntimeError("Wallet must be unlocked")
