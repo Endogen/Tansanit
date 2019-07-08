@@ -17,7 +17,7 @@ from logging.handlers import TimedRotatingFileHandler
 from datetime import datetime
 
 
-# TODO: Add 'encrypt' and 'decrypt' commands
+# TODO: Add 'encrypt', 'decrypt' and 'lock' commands
 # TODO: Save last selected address
 class Tansanit(Cmd):
 
@@ -470,11 +470,6 @@ class Tansanit(Cmd):
 
         self.client._wallet.set_label(self.client.address, label)
         print("DONE! Changed label")
-
-    def do_remove(self, args):
-        """ Remove address from wallet """
-        # TODO: Implement
-        pass
 
     def do_quit(self, args):
         """ Quit Tansanit """
