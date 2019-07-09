@@ -18,7 +18,6 @@ from datetime import datetime
 
 
 # TODO: Add 'encrypt', 'decrypt' and 'lock' commands
-# TODO: Save last selected address
 class Tansanit(Cmd):
 
     __version__ = "0.2"
@@ -177,22 +176,70 @@ class Tansanit(Cmd):
         print(f"Server:    {result['server']}\n"
               f"Connected: {result['connected']}")
 
-    # TODO: Integrieren: reject_empty_msg() aus bismultiwallet
     def do_send(self, args):
         """ Send coins to address """
 
-        if args and len(list(filter(None, args.split(" ")))) > 1:
-            arg_list = args.split(" ")
-            address = arg_list[0]
-            amount = arg_list[1]
+        if args:
+            arg_list = list(filter(None, args.split(" ")))
+            if args and len(arg_list) == 2:
+                address = arg_list[0]
+                amount = arg_list[1]
+                operation = ''
+                data = ''
+            else:
+                print("Provide following arguments\n"
+                      "send <address> <amount>")
+                return
         else:
-            print("You need to provide arguments\n"
-                  "send <address> <amount>")
+            question = [
+                {
+                    'type': 'input',
+                    'name': 'address',
+                    'message': 'To:',
+                },
+                {
+                    'type': 'input',
+                    'name': 'amount',
+                    'message': 'Amount:',
+                },
+                {
+                    'type': 'input',
+                    'name': 'operation',
+                    'message': 'Operation:',
+                },
+                {
+                    'type': 'input',
+                    'name': 'data',
+                    'message': 'Data:',
+                }
+            ]
+
+            res_send = prompt(question)
+
+            if res_send:
+                address = res_send['address'] if res_send['address'] else ''
+                amount = res_send['amount'] if res_send['amount'] else ''
+                operation = res_send['operation'] if res_send['operation'] else ''
+                data = res_send['data'] if res_send['data'] else ''
+            else:
+                return
+
+        if not BismuthUtil.valid_address(address):
+            msg = f"'{address}' is not a valid address!"
+            logging.error(msg)
+            print(msg)
             return
 
-        # Check if wallet address is valid
-        if not BismuthUtil.valid_address(address):
-            msg = f"'{address}' is not a valid address"
+        try:
+            float(amount)
+        except ValueError:
+            msg = "'Amount' has to be numeric!"
+            logging.error(msg)
+            print(msg)
+            return
+
+        if self.client.reject_empty_msg(address) and not data:
+            msg = "This address needs a 'Data' entry!"
             logging.error(msg)
             print(msg)
             return
@@ -213,8 +260,11 @@ class Tansanit(Cmd):
 
         if result:
             if result[question[0]["name"]] == "Yes":
-                # recipient, amount, operation, data
-                reply = self.client.send(address, float(amount))
+                reply = self.client.send(
+                    address,
+                    float(amount),
+                    operation=operation,
+                    data=data)
 
                 if reply:
                     print(f"\nDONE! TRXID: {reply}\n")
@@ -377,7 +427,6 @@ class Tansanit(Cmd):
         # TODO: Need try catch block?
         self.client.new_address(label, password1, salt)
 
-    # TODO: After selection, save selected address as first in wallet.json
     def do_select(self, args):
         """ Change currently active addresses """
 
