@@ -18,6 +18,8 @@ from datetime import datetime
 
 
 # TODO: Add 'encrypt', 'decrypt' and 'lock' commands
+# TODO: Change '_wallet' to 'wallet'
+# TODO: Spinner string doesn't get fully cleared
 class Tansanit(Cmd):
 
     __version__ = "0.2"
@@ -282,26 +284,37 @@ class Tansanit(Cmd):
         else:
             qr.print_ascii(invert=True)
 
-    # TODO: Integrate Spinner
     def do_balance(self, args):
         """ Show wallet balance """
 
         if args and args.lower() == "all":
-            balance = self.client.global_balance(for_display=True)
+            with Spinner():
+                balance = self.client.global_balance(for_display=True)
         else:
-            balance = self.client.balance(for_display=True)
+            with Spinner():
+                balance = self.client.balance(for_display=True)
 
         print(f"{balance} BIS")
 
     def do_transactions(self, args):
         """ Show latest transactions """
 
+        num = 5
+        if args:
+            if args.strip().isnumeric():
+                num = args.strip()
+            else:
+                print("Provide following argument\n"
+                      "transactions <number of last transactions>")
+                return
+
         reverse = False
         if args and len(list(filter(None, args.split(" ")))) > 0:
             if args.lower() == "reverse":
                 reverse = True
 
-        result = self.client.latest_transactions()
+        with Spinner():
+            result = self.client.latest_transactions(num=num)
 
         if not result:
             print("No transactions yet")
@@ -364,7 +377,6 @@ class Tansanit(Cmd):
 
             print(msg)
 
-    # TODO: Integrate Spinner
     # TODO: Do i really have to set salt on every new address?
     def do_new(self, args):
         """ Create new address """
@@ -425,10 +437,11 @@ class Tansanit(Cmd):
             return
 
         # TODO: Need try catch block?
-        self.client.new_address(label, password1, salt)
+        with Spinner():
+            self.client.new_address(label, password1, salt)
 
     def do_select(self, args):
-        """ Change currently active addresses """
+        """ Change currently active address """
 
         if args:
             if BismuthUtil.valid_address(args):
@@ -520,6 +533,7 @@ class Tansanit(Cmd):
         else:
             return
 
+        # TODO: If we only access 'client' then we need another method here
         self.client._wallet.set_label(self.client.address, label)
         print("DONE! Changed label")
 
@@ -591,8 +605,8 @@ class Spinner:
             sys.stdout.write(f"{next(self.spinner_generator)} Loading...")
             sys.stdout.flush()
             time.sleep(self.delay)
-            sys.stdout.write('\b'*12)
             sys.stdout.flush()
+            sys.stdout.write('\b'*12)
 
     def __enter__(self):
         self.busy = True
@@ -601,6 +615,7 @@ class Spinner:
     def __exit__(self, exception, value, tb):
         self.busy = False
         time.sleep(self.delay)
+        sys.stdout.write('\b' * 12)
         if exception is not None:
             return False
 

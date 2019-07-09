@@ -427,7 +427,7 @@ class BisClient:
         try:
             self._wallet.new_address(label, password, salt)
         except RuntimeError as e:
-            print(str(e))  # TODO: Test
+            print(str(e))
 
     def addresses(self):
         return self._wallet.addresses
