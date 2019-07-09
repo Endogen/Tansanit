@@ -259,7 +259,7 @@ class BisClient:
         if not self.address or not self._wallet:
             return 'N/A'
         try:
-            address_list = [add['address'] for add in self._wallet._addresses]
+            address_list = [add['address'] for add in self._wallet.addresses]
             # print('al', address_list)
             balance = self.command("globalbalanceget", [address_list])
             # print('balance', balance)
@@ -407,7 +407,7 @@ class BisClient:
         self.address = None
         self._wallet = None
         self._wallet = BisMultiWallet(wallet_file, verbose=self.verbose, log=self.log)
-        if len(self._wallet._data["addresses"]) == 0:
+        if len(self._wallet.addresses) == 0:
             # Create a first address by default
             self._wallet.new_address(label="default")
         self.wallet_file = wallet_file
@@ -430,7 +430,7 @@ class BisClient:
             print(str(e))  # TODO: Test
 
     def addresses(self):
-        return self._wallet._data['addresses']
+        return self._wallet.addresses
 
     def import_der(self, wallet_der='wallet.der', label='', password=''):
         try:
