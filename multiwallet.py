@@ -251,6 +251,14 @@ class BisMultiWallet:
         self._address = address
         self._infos['address'] = address
 
+        addresses = self._data['addresses']
+        for index, address_data in enumerate(addresses):
+            if address_data['address'] == self.address:
+                addresses.insert(0, addresses.pop(index))
+                break
+
+        self.save()
+
     def is_address_in_wallet(self, address: str = ''):
         if self._infos['encrypted'] and self._locked:
             # TODO: check could be done via a decorator
