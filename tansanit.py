@@ -232,6 +232,7 @@ class Tansanit(Cmd):
         else:
             qr.print_ascii(invert=True)
 
+    # TODO: Integrate Spinner
     def do_balance(self, args):
         """ Show wallet balance """
 
@@ -314,6 +315,7 @@ class Tansanit(Cmd):
             print(msg)
 
     # TODO: Integrate Spinner
+    # TODO: Do i really have to set salt on every new address?
     def do_new(self, args):
         """ Create new address """
 
@@ -375,6 +377,7 @@ class Tansanit(Cmd):
         # TODO: Need try catch block?
         self.client.new_address(label, password1, salt)
 
+    # TODO: After selection, save selected address as first in wallet.json
     def do_select(self, args):
         """ Change currently active addresses """
 
