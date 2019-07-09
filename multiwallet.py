@@ -87,7 +87,7 @@ class BisMultiWallet:
             self._addresses = []
             self._address = None
 
-    def save(self, wallet_file: str=None):
+    def save(self, wallet_file: str = None):
         if wallet_file is None:
             wallet_file = self._wallet_file
         with open(wallet_file, 'w') as f:
@@ -136,7 +136,7 @@ class BisMultiWallet:
             self._addresses = []
             self._address = None
 
-    def unlock(self, password:str):
+    def unlock(self, password: str):
         """Sets the master password and unlocks the wallet"""
         if not self._locked:
             return
