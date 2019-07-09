@@ -182,7 +182,7 @@ class BisMultiWallet:
 
     def set_label(self, address: str = '', label: str = ''):
         """
-        Add a new address to the wallet (and save it)
+        Set a label for the given address
         """
         if self._infos['encrypted'] and self._locked:
             raise RuntimeError("Wallet must be unlocked")
@@ -301,3 +301,8 @@ class BisMultiWallet:
     def address(self):
         """Returns the currently loaded address, or None"""
         return self._address
+
+    @property
+    def addresses(self):
+        """Returns the list of all addresses"""
+        return self._addresses
