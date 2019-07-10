@@ -28,6 +28,11 @@ class Tansanit(Cmd):
     SELECTED = "  <-- SELECTED"
     NO_LABEL = "<no label>"
 
+    LEGACY_WALLET = "wallet.der"
+
+    ARGS_RECEIVE = ["tty"]
+    ARGS_BALANCE = ["all"]
+
     def __init__(self):
         super().__init__()
 
@@ -137,7 +142,7 @@ class Tansanit(Cmd):
         result = self.client.info()
 
         for s in result["full_servers_list"]:
-            ip, port, load, height = s['ip'], s['port'], s['load'], s['height']
+            ip, port, load, height = s["ip"], s["port"], s["load"], s["height"]
             print(f"IP: {ip:<16} Port: {port:<5} Load: {load:<3} Height: {height}")
 
     def do_connect(self, args):
@@ -147,15 +152,15 @@ class Tansanit(Cmd):
         s_list = list()
 
         for s in result["full_servers_list"]:
-            ip, port, load, height = s['ip'], s['port'], s['load'], s['height']
+            ip, port, load, height = s["ip"], s["port"], s["load"], s["height"]
             s_list.append(f"IP: {ip:<16} Port: {port:<5} Load: {load:<3} Height: {height}")
 
         question = [
             {
-                'type': 'list',
-                'name': 'servers',
-                'message': f"Select a server to connect with",
-                'choices': s_list
+                "type": "list",
+                "name": "servers",
+                "message": f"Select a server to connect with",
+                "choices": s_list
             }
         ]
 
@@ -186,8 +191,8 @@ class Tansanit(Cmd):
             if args and len(arg_list) == 2:
                 address = arg_list[0]
                 amount = arg_list[1]
-                operation = ''
-                data = ''
+                operation = ""
+                data = ""
             else:
                 print("Provide following arguments\n"
                       "send <address> <amount>")
@@ -195,34 +200,34 @@ class Tansanit(Cmd):
         else:
             question = [
                 {
-                    'type': 'input',
-                    'name': 'address',
-                    'message': 'To:',
+                    "type": "input",
+                    "name": "address",
+                    "message": "To:",
                 },
                 {
-                    'type': 'input',
-                    'name': 'amount',
-                    'message': 'Amount:',
+                    "type": "input",
+                    "name": "amount",
+                    "message": "Amount:",
                 },
                 {
-                    'type': 'input',
-                    'name': 'operation',
-                    'message': 'Operation:',
+                    "type": "input",
+                    "name": "operation",
+                    "message": "Operation:",
                 },
                 {
-                    'type': 'input',
-                    'name': 'data',
-                    'message': 'Data:',
+                    "type": "input",
+                    "name": "data",
+                    "message": "Data:",
                 }
             ]
 
             res_send = prompt(question)
 
             if res_send:
-                address = res_send['address'] if res_send['address'] else ''
-                amount = res_send['amount'] if res_send['amount'] else ''
-                operation = res_send['operation'] if res_send['operation'] else ''
-                data = res_send['data'] if res_send['data'] else ''
+                address = res_send["address"] if res_send["address"] else ""
+                amount = res_send["amount"] if res_send["amount"] else ""
+                operation = res_send["operation"] if res_send["operation"] else ""
+                data = res_send["data"] if res_send["data"] else ""
             else:
                 return
 
@@ -248,12 +253,12 @@ class Tansanit(Cmd):
 
         question = [
             {
-                'type': 'list',
-                'name': 'send',
-                'message': f"Send {amount} BIS?",
-                'choices': [
-                    'Yes',
-                    'No'
+                "type": "list",
+                "name": "send",
+                "message": f"Send {amount} BIS?",
+                "choices": [
+                    "Yes",
+                    "No"
                 ]
             }
         ]
@@ -284,6 +289,9 @@ class Tansanit(Cmd):
         else:
             qr.print_ascii(invert=True)
 
+    def complete_receive(self, text, line, begidx, endidx):
+        return [i for i in self.ARGS_RECEIVE if i.startswith(text)]
+
     def do_balance(self, args):
         """ Show wallet balance """
 
@@ -295,6 +303,9 @@ class Tansanit(Cmd):
                 balance = self.client.balance(for_display=True)
 
         print(f"{balance} BIS")
+
+    def complete_balance(self, text, line, begidx, endidx):
+        return [i for i in self.ARGS_BALANCE if i.startswith(text)]
 
     def do_transactions(self, args):
         """ Show latest transactions """
@@ -322,21 +333,21 @@ class Tansanit(Cmd):
 
         msg = str()
         for trx in result:
-            trx_amount = trx['amount']
-            trx_height = trx['block_height']
-            trx_address = trx['address']
-            trx_recipient = trx['recipient']
-            trx_timestamp = trx['timestamp']
-            trx_signature = trx['signature']
-            trx_operation = trx['operation']
-            trx_fee = trx['fee']
+            trx_amount = trx["amount"]
+            trx_height = trx["block_height"]
+            trx_address = trx["address"]
+            trx_recipient = trx["recipient"]
+            trx_timestamp = trx["timestamp"]
+            trx_signature = trx["signature"]
+            trx_operation = trx["operation"]
+            trx_fee = trx["fee"]
 
             if trx_address == self.client.address:
                 trx_address = f"{trx_address} >> selected"
             else:
                 trx_recipient = f"{trx_recipient} >> selected"
 
-            dt = datetime.utcfromtimestamp(trx_timestamp).strftime('%Y-%m-%d %H:%M:%S')
+            dt = datetime.utcfromtimestamp(trx_timestamp).strftime("%Y-%m-%d %H:%M:%S")
             trx_timestamp = f"{dt} UTC"
 
             trx_msg = f"Amount:    {trx_amount}\n" \
@@ -366,9 +377,9 @@ class Tansanit(Cmd):
         """ List wallet addresses """
 
         for address in self.client.addresses():
-            addr = address['address']
+            addr = address["address"]
 
-            label = address['label']
+            label = address["label"]
             label = f"{label}" if label else self.NO_LABEL
 
             msg = f"{addr} {label}"
@@ -383,37 +394,37 @@ class Tansanit(Cmd):
 
         question = [
             {
-                'type': 'input',
-                'name': 'label',
-                'message': 'Label:',
+                "type": "input",
+                "name": "label",
+                "message": "Label:",
             }
         ]
 
         res_label = prompt(question)
 
         if res_label:
-            label = res_label['label'] if res_label['label'] else ''
+            label = res_label["label"] if res_label["label"] else ""
         else:
             return
 
         question = [
             {
-                'type': 'password',
-                'name': 'password1',
-                'message': 'Password 1/2:'
+                "type": "password",
+                "name": "password1",
+                "message": "Password 1/2:"
             },
             {
-                'type': 'password',
-                'name': 'password2',
-                'message': 'Password 2/2:'
+                "type": "password",
+                "name": "password2",
+                "message": "Password 2/2:"
             }
         ]
 
         res_pass = prompt(question)
 
         if res_pass:
-            password1 = res_pass['password1'] if res_pass['password1'] else ''
-            password2 = res_pass['password2'] if res_pass['password2'] else ''
+            password1 = res_pass["password1"] if res_pass["password1"] else ""
+            password2 = res_pass["password2"] if res_pass["password2"] else ""
 
             if password1 != password2:
                 print("Passwords don't match!")
@@ -423,16 +434,16 @@ class Tansanit(Cmd):
 
         question = [
             {
-                'type': 'input',
-                'name': 'salt',
-                'message': 'Salt:',
+                "type": "input",
+                "name": "salt",
+                "message": "Salt:",
             }
         ]
 
         res_salt = prompt(question)
 
         if res_salt:
-            salt = res_salt['salt'] if res_salt['salt'] else ''
+            salt = res_salt["salt"] if res_salt["salt"] else ""
         else:
             return
 
@@ -469,39 +480,37 @@ class Tansanit(Cmd):
     def do_import(self, args):
         """ Import legacy .der wallet """
 
-        legacy_wallet = 'wallet.der'
-
-        if not os.path.isfile(legacy_wallet):
-            print(f"No '{legacy_wallet}' file found!")
+        if not os.path.isfile(self.LEGACY_WALLET):
+            print(f"No '{self.LEGACY_WALLET}' file found!")
             return
 
         question = [
             {
-                'type': 'input',
-                'name': 'label',
-                'message': 'Label:',
+                "type": "input",
+                "name": "label",
+                "message": "Label:",
             }
         ]
 
         res_label = prompt(question)
 
         if res_label:
-            label = res_label['label'] if res_label['label'] else ''
+            label = res_label["label"] if res_label["label"] else ""
         else:
             return
 
         question = [
             {
-                'type': 'password',
-                'name': 'password',
-                'message': 'Password:'
+                "type": "password",
+                "name": "password",
+                "message": "Password:"
             }
         ]
 
         res_pass = prompt(question)
 
         if res_pass:
-            password = res_pass['password'] if res_pass['password'] else ''
+            password = res_pass["password"] if res_pass["password"] else ""
         else:
             return
 
@@ -516,20 +525,20 @@ class Tansanit(Cmd):
 
         question = [
             {
-                'type': 'input',
-                'name': 'label',
-                'message': 'New label:',
+                "type": "input",
+                "name": "label",
+                "message": "New label:",
             }
         ]
 
         res_label = prompt(question)
 
         if res_label:
-            if not res_label['label']:
-                print('No label provided')
+            if not res_label["label"]:
+                print("No label provided")
                 return
 
-            label = res_label['label']
+            label = res_label["label"]
         else:
             return
 
@@ -542,12 +551,12 @@ class Tansanit(Cmd):
 
         question = [
             {
-                'type': 'list',
-                'name': 'quit',
-                'message': 'Do you really want to quit?',
-                'choices': [
-                    'Yes',
-                    'No'
+                "type": "list",
+                "name": "quit",
+                "message": "Do you really want to quit?",
+                "choices": [
+                    "Yes",
+                    "No"
                 ]
             }
         ]
@@ -557,14 +566,14 @@ class Tansanit(Cmd):
         if result and result[question[0]["name"]] == "Yes":
             raise SystemExit
 
-    def _select_address(self, name='addresses', message='Select an address'):
+    def _select_address(self, name="addresses", message="Select an address"):
         addresses = self.client.addresses()
 
         address_list = list()
         for address_data in addresses:
-            address = address_data['address']
+            address = address_data["address"]
 
-            label = address_data['label']
+            label = address_data["label"]
             label = f"{label}" if label else self.NO_LABEL
 
             msg = f"{address} {label}"
@@ -575,10 +584,10 @@ class Tansanit(Cmd):
 
         question = [
             {
-                'type': 'list',
-                'name': name,
-                'message': message,
-                'choices': address_list
+                "type": "list",
+                "name": name,
+                "message": message,
+                "choices": address_list
             }
         ]
 
@@ -592,7 +601,7 @@ class Spinner:
     @staticmethod
     def spinning_cursor():
         while 1:
-            for cursor in '|/-\\':
+            for cursor in "|/-\\":
                 yield cursor
 
     def __init__(self, delay=None):
@@ -602,11 +611,11 @@ class Spinner:
 
     def spinner_task(self):
         while self.busy:
-            sys.stdout.write(f"{next(self.spinner_generator)} Loading...")
+            sys.stdout.write(f"{next(self.spinner_generator)} Working...")
             sys.stdout.flush()
             time.sleep(self.delay)
             sys.stdout.flush()
-            sys.stdout.write('\b'*12)
+            sys.stdout.write("\b"*12)
 
     def __enter__(self):
         self.busy = True
@@ -615,16 +624,16 @@ class Spinner:
     def __exit__(self, exception, value, tb):
         self.busy = False
         time.sleep(self.delay)
-        sys.stdout.write('\b' * 12)
+        sys.stdout.write("\b" * 12)
         if exception is not None:
             return False
 
 
-if __name__ == '__main__':
-    f = Figlet(font='slant')
+if __name__ == "__main__":
+    f = Figlet(font="slant")
 
     with Spinner():
         t = Tansanit()
 
     t.prompt = "> "
-    t.cmdloop(f.renderText('Tansanit'))
+    t.cmdloop(f.renderText("Tansanit"))
