@@ -6,6 +6,7 @@ import threading
 import logging
 import sys
 import os
+import json
 
 from cmd import Cmd
 from pyfiglet import Figlet
@@ -50,16 +51,16 @@ class Tansanit(Cmd):
         wallet_path = os.path.dirname(self.args.wallet)
         wallet_path and os.makedirs(wallet_path, exist_ok=True)
 
-        # Create and load wallet
-        self.client = Client(self.args.wallet)
+        # Get password if wallet is encrypted
+        password = self._get_password(self.args.wallet)
 
-        # Connect to server
-        if self.args.server:
-            # Connect to specified server
-            self.client.set_server(self.args.server)
-        else:
-            # Automatically choose best server
-            self.client.get_server()
+        with Spinner():
+            try:
+                self._init_wallet(password)
+            except Exception as e:
+                logging.error(e)
+                print(e)  # FIXME: Print only error message
+                raise SystemExit
 
     def _parse_args(self):
         desc = "Tansanit - command line wallet for Bismuth (BIS)"
@@ -114,6 +115,44 @@ class Tansanit(Cmd):
             file_log.setLevel(level)
 
             logger.addHandler(file_log)
+
+    def _get_password(self, wallet_file):
+        with open(wallet_file, 'r') as file:
+            data = json.load(file)
+
+        if data["encrypted"]:
+            enter_pass = [
+                {
+                    "type": "password",
+                    "name": "password",
+                    "message": "Password:"
+                }
+            ]
+
+            res_pass = prompt(enter_pass)
+
+            sys.stdout.write("\033[F")  # back to previous line
+            sys.stdout.write("\033[K")  # clear line
+
+            if res_pass:
+                return res_pass["password"] if res_pass["password"] else None
+            else:
+                print("No password provided")
+                raise SystemExit
+        else:
+            return None
+
+    def _init_wallet(self, password=None):
+        # Create and load wallet
+        self.client = Client(self.args.wallet, password=password)
+
+        # Connect to server
+        if self.args.server:
+            # Connect to specified server
+            self.client.set_server(self.args.server)
+        else:
+            # Automatically choose best server
+            self.client.get_server()
 
     def precmd(self, line):
         print()
@@ -303,7 +342,7 @@ class Tansanit(Cmd):
             with Spinner():
                 balance = self.client.balance(for_display=True)
 
-        print(f"{balance} BIS")
+        print("N/A" if balance == "N/A" else f"{balance} BIS")
 
     def complete_balance(self, text, line, begidx, endidx):
         return [i for i in self.ARGS_BALANCE if i.startswith(text)]
@@ -621,7 +660,7 @@ class Spinner:
             sys.stdout.flush()
             time.sleep(self.delay)
             sys.stdout.flush()
-            sys.stdout.write("\b"*12)
+            sys.stdout.write("\b"*9)
 
     def __enter__(self):
         self.busy = True
@@ -630,7 +669,8 @@ class Spinner:
     def __exit__(self, exception, value, tb):
         self.busy = False
         time.sleep(self.delay)
-        sys.stdout.write("\b" * 12)
+        sys.stdout.write("\b"*9)
+        sys.stdout.write("\033[K")
         if exception is not None:
             return False
 
@@ -638,8 +678,6 @@ class Spinner:
 if __name__ == "__main__":
     f = Figlet(font="slant")
 
-    with Spinner():
-        t = Tansanit()
-
+    t = Tansanit()
     t.prompt = "> "
     t.cmdloop(f.renderText("Tansanit"))

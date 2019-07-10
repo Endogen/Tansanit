@@ -21,7 +21,14 @@ class MultiWallet:
     __slots__ = ('_address', '_wallet_file', 'verbose', '_infos', "verbose", "key", "public_key",
                  '_addresses', '_locked', '_data', '_master_password', 'log')
 
-    def __init__(self, wallet_file: str = 'wallet.json', verbose: bool = False, seed: str = None, log=None):
+    def __init__(
+            self,
+            wallet_file: str = 'wallet.json',
+            password: str = None,
+            verbose: bool = False,
+            seed: str = None,
+            log=None):
+
         self._wallet_file = None
         self._address = None
         self._infos = None
@@ -33,7 +40,7 @@ class MultiWallet:
         self._addresses = []
         self._master_password = ''
         self.log = log if log else logging
-        self.load(wallet_file, seed=seed)
+        self.load(wallet_file, password=password, seed=seed)
 
     def info(self):
         """
@@ -43,11 +50,12 @@ class MultiWallet:
         self._infos['count'] = len(self._data['addresses'])
         return self._infos
 
-    def load(self, wallet_file: str = 'wallet.json', seed: str = None):
+    def load(self, wallet_file: str = 'wallet.json', password: str = None, seed: str = None):
         """
         Loads the wallet.json file
 
         :param wallet_file: string, a wallet file path
+        :param password: string, password to decrypt wallet
         :param seed: None or string, an optional seed for reproducible tests. Do NOT use in prod.
         """
         if self.verbose:
@@ -84,8 +92,11 @@ class MultiWallet:
             except:
                 self._address = None
         else:
-            self._addresses = []
-            self._address = None
+            self.unlock(password)
+            try:
+                self._address = self._addresses[0]['address']
+            except:
+                self._address = None
 
     def save(self, wallet_file: str = None):
         if wallet_file is None:
@@ -251,6 +262,8 @@ class MultiWallet:
         self._address = address
         self._infos['address'] = address
 
+        # FIXME: This doesn't work with encrypted wallets
+        """
         # Move selected address to top of list
         addresses = self._data['addresses']
         for index, address_data in enumerate(addresses):
@@ -266,6 +279,7 @@ class MultiWallet:
                 break
 
         self.save()
+        """
 
     def is_address_in_wallet(self, address: str = ''):
         if self._infos['encrypted'] and self._locked:

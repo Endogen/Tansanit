@@ -34,7 +34,7 @@ class Client:
                         '49ca873779b36c4a503562ebf5697fca331685d79fd3deef64a46888',
                         'edf2d63cdf0b6275ead22c9e6d66aa8ea31dc0ccb367fad2e7c08a25']
 
-    def __init__(self, wallet_file='wallet.json', servers=None, log=None, verbose=False):
+    def __init__(self, wallet_file='wallet.json', password=None, servers=None, log=None, verbose=False):
         self.verbose = verbose
         self.servers = servers if servers else []
         self.initial_servers = self.servers
@@ -50,7 +50,7 @@ class Client:
         self._alias_cache_file = None
         self.time_drift = 0  # Difference between local time and server time
 
-        self.load_multi_wallet(wallet_file)
+        self.load_multi_wallet(wallet_file, password=password)
 
     # --- alias functions
 
@@ -396,17 +396,23 @@ class Client:
             status = {}
         return status
 
-    def load_multi_wallet(self, wallet_file='wallet.json'):
+    def load_multi_wallet(self, wallet_file='wallet.json', password=None):
         """
         Tries to load the wallet file
 
         :param wallet_file: string, a wallet.json file
+        :param password: string, password to decrypt wallet
         """
         # TODO: Refactor
         self.wallet_file = None
         self.address = None
         self._wallet = None
-        self._wallet = MultiWallet(wallet_file, verbose=self.verbose, log=self.log)
+        self._wallet = MultiWallet(
+            wallet_file,
+            password=password,
+            verbose=self.verbose,
+            log=self.log)
+
         if len(self._wallet.addresses) == 0:
             # Create a first address by default
             self._wallet.new_address(label="default")
