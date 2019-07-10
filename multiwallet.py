@@ -14,7 +14,7 @@ from bismuthclient.simplecrypt import encrypt, decrypt
 from Cryptodome.PublicKey import RSA
 
 
-class BisMultiWallet:
+class MultiWallet:
 
     __version__ = '0.0.41'
 

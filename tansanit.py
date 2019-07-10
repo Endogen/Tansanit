@@ -10,7 +10,7 @@ import os
 from cmd import Cmd
 from pyfiglet import Figlet
 from PyInquirer import prompt
-from client import BisClient
+from client import Client
 from argparse import ArgumentParser
 from bismuthclient.bismuthutil import BismuthUtil
 from logging.handlers import TimedRotatingFileHandler
@@ -25,6 +25,7 @@ class Tansanit(Cmd):
     __version__ = "0.2"
 
     LOG_FILE = os.path.join("log", "tansanit.log")
+
     SELECTED = "  <-- SELECTED"
     NO_LABEL = "<no label>"
 
@@ -50,7 +51,7 @@ class Tansanit(Cmd):
         wallet_path and os.makedirs(wallet_path, exist_ok=True)
 
         # Create and load wallet
-        self.client = BisClient(self.args.wallet)
+        self.client = Client(self.args.wallet)
 
         # Connect to server
         if self.args.server:
@@ -171,7 +172,7 @@ class Tansanit(Cmd):
             selected = f"{server[1].strip()}:{server[3].strip()}"
             result = self.client.set_server(selected)
             if selected == result:
-                print("DONE!")
+                print("DONE! Connected")
             else:
                 print(result)
 
@@ -457,7 +458,7 @@ class Tansanit(Cmd):
         if args:
             if BismuthUtil.valid_address(args):
                 self.client.set_address(args)
-                print("DONE!")
+                print("DONE! Address selected")
             else:
                 print("Address not valid!")
             return
@@ -472,7 +473,7 @@ class Tansanit(Cmd):
             try:
                 addresses = list(filter(None, result["addresses"].split(" ")))
                 self.client.set_address(addresses[0].strip())
-                print("DONE!")
+                print("DONE! Address selected")
             except Exception as e:
                 logging.error(e)
                 print(str(e))
@@ -542,9 +543,14 @@ class Tansanit(Cmd):
         else:
             return
 
-        # TODO: If we only access 'client' then we need another method here
-        self.client._wallet.set_label(self.client.address, label)
-        print("DONE! Changed label")
+        self.client.set_label(self.client.address, label)
+        print("DONE! Label changed")
+
+    def do_shell(self, command):
+        """ Execute shell commands """
+
+        os.system(command)
+        print("Executed")
 
     def do_quit(self, args):
         """ Quit Tansanit """
@@ -624,7 +630,6 @@ class Spinner:
     def __exit__(self, exception, value, tb):
         self.busy = False
         time.sleep(self.delay)
-        sys.stdout.write("\b" * 12)
         if exception is not None:
             return False
 

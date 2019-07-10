@@ -11,7 +11,7 @@ from bismuthclient import lwbench
 from bismuthclient import bismuthapi
 from bismuthclient import bismuthcrypto
 from bismuthclient import rpcconnections
-from multiwallet import BisMultiWallet
+from multiwallet import MultiWallet
 from bismuthclient.bismuthformat import TxFormatter, AmountFormatter
 from os import path
 
@@ -21,7 +21,7 @@ A all in one Bismuth Native client that connects to local or distant wallet serv
 """
 
 
-class BisClient:
+class Client:
 
     __version__ = '0.0.44'
 
@@ -254,7 +254,7 @@ class BisClient:
         """
         Returns the current global balance for all addresses of current multiwallet.
         """
-        if not type(self._wallet) == BisMultiWallet:
+        if not type(self._wallet) == MultiWallet:
             raise RuntimeWarning("Not a Multiwallet")
         if not self.address or not self._wallet:
             return 'N/A'
@@ -406,7 +406,7 @@ class BisClient:
         self.wallet_file = None
         self.address = None
         self._wallet = None
-        self._wallet = BisMultiWallet(wallet_file, verbose=self.verbose, log=self.log)
+        self._wallet = MultiWallet(wallet_file, verbose=self.verbose, log=self.log)
         if len(self._wallet.addresses) == 0:
             # Create a first address by default
             self._wallet.new_address(label="default")
@@ -416,7 +416,7 @@ class BisClient:
         self.address = self._wallet.address
 
     def set_address(self, address: str = ''):
-        if not type(self._wallet) == BisMultiWallet:
+        if not type(self._wallet) == MultiWallet:
             raise RuntimeWarning("Not a MultiWallet")
         self._wallet.set_address(address)
         if self.address != self._wallet.address:
@@ -438,6 +438,9 @@ class BisClient:
         except Exception as e:
             print(str(e))
             raise e
+
+    def set_label(self, address, label):
+        self._wallet.set_label(address, label)
 
     def wallet(self):
         """
