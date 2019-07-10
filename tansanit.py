@@ -617,7 +617,7 @@ class Spinner:
 
     def spinner_task(self):
         while self.busy:
-            sys.stdout.write(f"{next(self.spinner_generator)} Working...")
+            sys.stdout.write(f"{next(self.spinner_generator)} Working")
             sys.stdout.flush()
             time.sleep(self.delay)
             sys.stdout.flush()
