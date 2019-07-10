@@ -251,7 +251,15 @@ class MultiWallet:
         self._address = address
         self._infos['address'] = address
 
+        # Move selected address to top of list
         addresses = self._data['addresses']
+        for index, address_data in enumerate(addresses):
+            if address_data['address'] == self.address:
+                addresses.insert(0, addresses.pop(index))
+                break
+
+        # Move selected address to top of list
+        addresses = self.addresses
         for index, address_data in enumerate(addresses):
             if address_data['address'] == self.address:
                 addresses.insert(0, addresses.pop(index))
