@@ -630,6 +630,7 @@ class Spinner:
     def __exit__(self, exception, value, tb):
         self.busy = False
         time.sleep(self.delay)
+        sys.stdout.write("\b" * 12)
         if exception is not None:
             return False
 
