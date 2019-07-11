@@ -18,9 +18,7 @@ from logging.handlers import TimedRotatingFileHandler
 from datetime import datetime
 
 
-# TODO: Add 'encrypt', 'decrypt' and 'lock' commands
-# TODO: Change '_wallet' to 'wallet'
-# TODO: Spinner string doesn't get fully cleared
+# TODO: Remove 'self.log.error(e)' from tansanit.py since it's in client already
 class Tansanit(Cmd):
 
     __version__ = "0.2"
@@ -54,13 +52,13 @@ class Tansanit(Cmd):
         # Get password if wallet is encrypted
         password = self._get_password(self.args.wallet)
 
-        with Spinner():
-            try:
+        try:
+            with Spinner():
                 self._init_wallet(password)
-            except Exception as e:
-                logging.error(e)
-                print(e)  # FIXME: Print only error message
-                raise SystemExit
+        except Exception as e:
+            logging.error(e)
+            print(f"\n{e}\n")
+            raise SystemExit
 
     def _parse_args(self):
         desc = "Tansanit - command line wallet for Bismuth (BIS)"
@@ -137,7 +135,7 @@ class Tansanit(Cmd):
             if res_pass:
                 return res_pass["password"] if res_pass["password"] else None
             else:
-                print("No password provided")
+                print("No password provided\n")
                 raise SystemExit
         else:
             return None
@@ -234,7 +232,7 @@ class Tansanit(Cmd):
                 operation = ""
                 data = ""
             else:
-                print("Provide following arguments\n"
+                print("Provide following syntax\n"
                       "send <address> <amount>")
                 return
         else:
@@ -307,16 +305,20 @@ class Tansanit(Cmd):
 
         if result:
             if result[question[0]["name"]] == "Yes":
-                reply = self.client.send(
-                    address,
-                    float(amount),
-                    operation=operation,
-                    data=data)
+                try:
+                    reply = self.client.send(
+                        address,
+                        float(amount),
+                        operation=operation,
+                        data=data)
 
-                if reply:
-                    print(f"\nDONE! TRXID: {reply}\n")
-                else:
-                    print("Transaction couldn't be send")
+                    if reply:
+                        print(f"\nDONE! TRXID: {reply}\n")
+                    else:
+                        print("Transaction couldn't be send")
+                except Exception as e:
+                    logging.error(e)
+                    print(str(e))
 
     def do_receive(self, args):
         """ Show QR-Code to receive BIS """
@@ -487,9 +489,12 @@ class Tansanit(Cmd):
         else:
             return
 
-        # TODO: Need try catch block?
         with Spinner():
-            self.client.new_address(label, password1, salt)
+            try:
+                self.client.new_address(label, password1, salt)
+            except Exception as e:
+                logging.error(e)
+                print(str(e))
 
     def do_select(self, args):
         """ Change currently active address """
@@ -557,8 +562,9 @@ class Tansanit(Cmd):
         try:
             self.client.import_der(label=label, password=password)
             print("DONE! Successfully imported")
-        except:
-            pass
+        except Exception as e:
+            logging.error(e)
+            print(str(e))
 
     def do_label(self, args):
         """ Change label of selected address """
@@ -585,11 +591,104 @@ class Tansanit(Cmd):
         self.client.set_label(self.client.address, label)
         print("DONE! Label changed")
 
+    def do_msg_encrypt(self, args):
+        """ Encrypts given message for recipient """
+
+        question = [
+            {
+                "type": "input",
+                "name": "recipient",
+                "message": "Recipient:",
+            },
+            {
+                "type": "input",
+                "name": "message",
+                "message": "Message:",
+            }
+        ]
+
+        res_data = prompt(question)
+
+        if res_data:
+            recipient = res_data["recipient"] if res_data["recipient"] else ""
+            message = res_data["message"] if res_data["message"] else ""
+        else:
+            return
+
+        try:
+            with Spinner():
+                encrypted = self.client.encrypt(message, recipient)
+        except Exception as e:
+            logging.error(e)
+            print(str(e))
+            return
+
+        print(f"\n{encrypted}")
+
+    def do_msg_decrypt(self, args):
+        """ Decrypts given message """
+
+        question = [
+            {
+                "type": "input",
+                "name": "message",
+                "message": "Message:",
+            }
+        ]
+
+        res_msg = prompt(question)
+
+        if res_msg:
+            message = res_msg["message"] if res_msg["message"] else ""
+        else:
+            return
+
+        try:
+            print(f"\n{self.client.decrypt(message)}")
+        except Exception as e:
+            logging.error(e)
+            print(f"\n{e}")
+
+    def do_encrypt(self, args):
+        """ Encrypt the wallet """
+
+        question = [
+            {
+                "type": "password",
+                "name": "password",
+                "message": "Password:"
+            }
+        ]
+
+        res_pass = prompt(question)
+
+        if res_pass:
+            password = res_pass["password"] if res_pass["password"] else ""
+        else:
+            return
+
+        with Spinner():
+            try:
+                self.client._wallet.encrypt(password=password)
+            except Exception as e:
+                logging.error(e)
+                print(str(e))
+
+        print("DONE! Wallet encrypted")
+
+    def do_decrypt(self, args):
+        """ Decrypt the wallet """
+        # TODO: Wallet is still encrypted...
+        self.client._wallet.unlock(password=args)
+        self.client._wallet.save()
+
+        print("DONE! Wallet decrypted")
+
     def do_shell(self, command):
         """ Execute shell commands """
 
         os.system(command)
-        print("Executed")
+        print("DONE! Command executed")
 
     def do_quit(self, args):
         """ Quit Tansanit """

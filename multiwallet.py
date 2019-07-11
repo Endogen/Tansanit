@@ -167,9 +167,6 @@ class MultiWallet:
             self._infos['spend'] = decoded
         except Exception as e:
             self.log.error(e)
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
             raise RuntimeWarning("Password does not seem to match")
 
     def new_address(self, label: str = '', password: str = '', salt: str = ''):
@@ -262,15 +259,6 @@ class MultiWallet:
         self._address = address
         self._infos['address'] = address
 
-        # FIXME: This doesn't work with encrypted wallets
-        """
-        # Move selected address to top of list
-        addresses = self._data['addresses']
-        for index, address_data in enumerate(addresses):
-            if address_data['address'] == self.address:
-                addresses.insert(0, addresses.pop(index))
-                break
-
         # Move selected address to top of list
         addresses = self.addresses
         for index, address_data in enumerate(addresses):
@@ -278,8 +266,21 @@ class MultiWallet:
                 addresses.insert(0, addresses.pop(index))
                 break
 
-        self.save()
-        """
+        if not self._infos["encrypted"]:
+            # Since the first address in the wallet is automatically
+            # the currently selected, save re-ordered list to disk.
+            # For encrypted wallets this would would take a lot of
+            # time and thus it's disabled
+
+            # TODO: This doesn't work with encrypted wallets
+            # Move selected address to top of list
+            addresses = self._data['addresses']
+            for index, address_data in enumerate(addresses):
+                if address_data['address'] == self.address:
+                    addresses.insert(0, addresses.pop(index))
+                    break
+
+            self.save()
 
     def is_address_in_wallet(self, address: str = ''):
         if self._infos['encrypted'] and self._locked:

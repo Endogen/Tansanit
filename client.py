@@ -310,10 +310,7 @@ class Client:
             return txid
         except Exception as e:
             self.log.error(e)
-            print(str(e))
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
+            raise e
 
     def sign(self, message: str):
         """
@@ -324,13 +321,9 @@ class Client:
             return signature
         except Exception as e:
             self.log.error(e)
-            print(str(e))
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
-            raise
+            raise e
 
-    def encrypt(self, message: str, recipient:str):
+    def encrypt(self, message: str, recipient: str):
         """
         Encrypts the given message for the recipient
         """
@@ -342,11 +335,7 @@ class Client:
             return encrypted
         except Exception as e:
             self.log.error(e)
-            print(str(e))
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
-            raise
+            raise e
 
     def decrypt(self, message: str):
         """
@@ -357,11 +346,7 @@ class Client:
             return decrypted
         except Exception as e:
             self.log.error(e)
-            print(str(e))
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
-            raise
+            raise e
 
     def status(self):
         """
@@ -433,7 +418,8 @@ class Client:
         try:
             self._wallet.new_address(label, password, salt)
         except RuntimeError as e:
-            print(str(e))
+            self.log.error(e)
+            raise e
 
     def addresses(self):
         return self._wallet.addresses
@@ -442,7 +428,6 @@ class Client:
         try:
             self._wallet.import_der(wallet_der=wallet_der, label=label, source_password=password)
         except Exception as e:
-            print(str(e))
             raise e
 
     def set_label(self, address, label):
