@@ -86,9 +86,18 @@ class Tansanit(Cmd):
             dest="log",
             type=int,
             choices=[10, 20, 30, 40, 50],
-            help="Debug, Info, Warning, Error, Critical",
+            help="debug, info, warning, error, critical",
             default=60,
             required=False)
+
+        # Clear
+        parser.add_argument(
+            "--no-clear",
+            dest="clear",
+            action="store_false",
+            help="don't clear after each command",
+            required=False,
+            default=True)
 
         return parser.parse_args()
 
@@ -153,6 +162,8 @@ class Tansanit(Cmd):
             self.client.get_server()
 
     def precmd(self, line):
+        if self.args.clear:
+            os.system("clear")
         print()
         return line
 
@@ -678,6 +689,7 @@ class Tansanit(Cmd):
 
     def do_decrypt(self, args):
         """ Decrypt the wallet """
+
         # TODO: Wallet is still encrypted...
         self.client._wallet.unlock(password=args)
         self.client._wallet.save()
