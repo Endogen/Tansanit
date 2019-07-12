@@ -161,6 +161,10 @@ class Tansanit(Cmd):
             # Automatically choose best server
             self.client.get_server()
 
+    def preloop(self):
+        if self.args.clear:
+            os.system("clear")
+
     def precmd(self, line):
         if self.args.clear:
             os.system("clear")
