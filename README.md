@@ -1,10 +1,14 @@
 # Tansanit
 Command line wallet for the [Bismuth](https://bismuth.cz) cryptocurrency (BIS)
 
+<p align="center">
+    <a href="https://asciinema.org/a/257189" target="_blank"><img src="https://asciinema.org/a/257189.svg" /></a>
+</p>
+
 #### Supported Operating Systems
 - macOS
 - Linux
-- Windows (no command autocomplete)
+- Windows (no command autocomplete and some other issues)
 
 ## Prerequisites
 The wallet will only work with **Python 3**. To be able to use the wallet, the required Python modules mentioned in `requirements.txt` have to be installed. Install them with:
@@ -33,14 +37,17 @@ Use `./tansanit.py -h` to show all available arguments
 
 ```
 ➜  Tansanit git:(master) ✗ ./tansanit.py -h
-|usage: tansanit.py [-h] [-s SERVER] [-l {10,20,30,40,50}]
+usage: tansanit.py [-h] [-w WALLET] [-s SERVER] [-l {10,20,30,40,50}]
+                   [--no-clear]
 
-Command line wallet for Bismuth (BIS)
+Tansanit - command line wallet for Bismuth (BIS)
 
 optional arguments:
   -h, --help           show this help message and exit
+  -w WALLET            set wallet file location
   -s SERVER            connect to server (host:port)
-  -l {10,20,30,40,50}  Debug, Info, Warning, Error, Critical
+  -l {10,20,30,40,50}  debug, info, warning, error, critical
+  --no-clear           don't clear after each command
 ```
 
 ### Connect to a specific server
@@ -68,22 +75,12 @@ Available log levels are
 After you started Tansanit, list all available commands by entering `help`
 
 ```
-➜  Tansanit git:(master) ✗ ./tansanit.py 
-  ______                             _ __ 
- /_  __/___ _____  _________ _____  (_) /_
-  / / / __ `/ __ \/ ___/ __ `/ __ \/ / __/
- / / / /_/ / / / (__  ) /_/ / / / / / /_  
-/_/  \__,_/_/ /_/____/\__,_/_/ /_/_/\__/  
-                                          
-
-> help
-
 Documented commands (type help <topic>):
 ========================================
-balance  quit     send     status        version
-help     refresh  servers  transactions  wallet 
-
-> 
+addresses  encrypt  msg_decrypt  receive  servers       version
+balance    help     msg_encrypt  refresh  shell         wallet
+connect    import   new          select   status
+decrypt    label    quit         send     transactions
 ```
 
 Or for help regarding a specific command, use `help <command>`
