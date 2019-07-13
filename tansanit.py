@@ -574,7 +574,8 @@ class Tansanit(Cmd):
             return
 
         try:
-            self.client.import_der(label=label, password=password)
+            with Spinner():
+                self.client.import_der(label=label, password=password)
             print("DONE! Successfully imported")
         except Exception as e:
             logging.error(e)
@@ -631,13 +632,12 @@ class Tansanit(Cmd):
 
         try:
             with Spinner():
-                encrypted = self.client.encrypt(message, recipient)
+                encrypted = self.client.encrypt_message(message, recipient)
+            print(f"\n{encrypted}")
         except Exception as e:
             logging.error(e)
             print(str(e))
             return
-
-        print(f"\n{encrypted}")
 
     def do_msg_decrypt(self, args):
         """ Decrypts given message """
@@ -658,7 +658,9 @@ class Tansanit(Cmd):
             return
 
         try:
-            print(f"\n{self.client.decrypt(message)}")
+            with Spinner():
+                decrypt = self.client.decrypt_message(message)
+            print(f"\n{decrypt}")
         except Exception as e:
             logging.error(e)
             print(f"\n{e}")
@@ -685,14 +687,13 @@ class Tansanit(Cmd):
         else:
             return
 
-        with Spinner():
-            try:
-                self.client._wallet.encrypt(password=password)
-            except Exception as e:
-                logging.error(e)
-                print(str(e))
-
-        print("DONE! Wallet encrypted")
+        try:
+            with Spinner():
+                self.client.encrypt_wallet(password=password)
+            print("DONE! Wallet encrypted")
+        except Exception as e:
+            logging.error(e)
+            print(str(e))
 
     def do_decrypt(self, args):
         """ Decrypt the wallet """
@@ -716,11 +717,14 @@ class Tansanit(Cmd):
         else:
             return
 
-        # TODO: Wallet is still encrypted...
-        self.client._wallet.unlock(password=password)
-        self.client._wallet.save()
-
-        print("DONE! Wallet decrypted")
+        # TODO: Not yet possible to decrypt and save it
+        try:
+            with Spinner():
+                self.client.decrypt_wallet(password=password)
+            print("DONE! Wallet decrypted")
+        except Exception as e:
+            logging.error(e)
+            print(str(e))
 
     def do_shell(self, command):
         """ Execute shell commands """
