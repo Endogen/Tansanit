@@ -666,6 +666,10 @@ class Tansanit(Cmd):
     def do_encrypt(self, args):
         """ Encrypt the wallet """
 
+        if self.client.wallet()["encrypted"]:
+            print("Wallet already encrypted")
+            return
+
         question = [
             {
                 "type": "password",
@@ -693,8 +697,27 @@ class Tansanit(Cmd):
     def do_decrypt(self, args):
         """ Decrypt the wallet """
 
+        if not self.client.wallet()["encrypted"]:
+            print("Wallet already decrypted")
+            return
+
+        question = [
+            {
+                "type": "password",
+                "name": "password",
+                "message": "Password:"
+            }
+        ]
+
+        res_pass = prompt(question)
+
+        if res_pass:
+            password = res_pass["password"] if res_pass["password"] else ""
+        else:
+            return
+
         # TODO: Wallet is still encrypted...
-        self.client._wallet.unlock(password=args)
+        self.client._wallet.unlock(password=password)
         self.client._wallet.save()
 
         print("DONE! Wallet decrypted")
