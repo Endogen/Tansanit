@@ -266,7 +266,7 @@ class Client:
             balance = balance[0]
         except:
             # TODO: Handle retry, at least error message.
-            balance = 'N/A'
+            return 'N/A'
         if for_display:
             balance = AmountFormatter(balance).to_string(leading=0)
         if balance == '0E-8':
@@ -323,7 +323,7 @@ class Client:
             self.log.error(e)
             raise e
 
-    def encrypt(self, message: str, recipient: str):
+    def encrypt_message(self, message: str, recipient: str):
         """
         Encrypts the given message for the recipient
         """
@@ -337,7 +337,7 @@ class Client:
             self.log.error(e)
             raise e
 
-    def decrypt(self, message: str):
+    def decrypt_message(self, message: str):
         """
         Decrypts the given message
         """
@@ -432,6 +432,19 @@ class Client:
 
     def set_label(self, address, label):
         self._wallet.set_label(address, label)
+
+    def encrypt_wallet(self, password=""):
+        try:
+            self._wallet.encrypt(password=password)
+        except Exception as e:
+            raise e
+
+    def decrypt_wallet(self, password=""):
+        try:
+            self._wallet.unlock(password=password)
+            self._wallet.save()
+        except Exception as e:
+            raise e
 
     def wallet(self):
         """
