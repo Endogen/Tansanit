@@ -413,7 +413,6 @@ class Tansanit(Cmd):
                       f"To:        {trx_recipient}\n" \
                       f"Timestamp: {trx_timestamp}\n" \
                       f"Trx ID:    {trx_signature[:56]}\n" \
-                      f"Trx ID:    {trx_signature[:56]}\n" \
                       f"Fee:       {trx_fee}\n" \
                       f"Operation: {trx_operation}\n\n"
 
