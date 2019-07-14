@@ -381,11 +381,15 @@ class Tansanit(Cmd):
             if args.lower() == "reverse":
                 reverse = True
 
-        with Spinner():
-            result = self.client.latest_transactions(num=num)
-
-        if not result:
-            print("No transactions yet")
+        try:
+            with Spinner():
+                result = self.client.latest_transactions(num=num)
+            if not result:
+                print("No transactions yet")
+                return
+        except Exception as e:
+            logging.error(e)
+            print(str(e))
             return
 
         msg = str()
@@ -400,9 +404,9 @@ class Tansanit(Cmd):
             trx_fee = trx["fee"]
 
             if trx_address == self.client.address:
-                trx_address = f"{trx_address} >> selected"
+                trx_address = f"{trx_address}{self.SELECTED}"
             else:
-                trx_recipient = f"{trx_recipient} >> selected"
+                trx_recipient = f"{trx_recipient}{self.SELECTED}"
 
             dt = datetime.utcfromtimestamp(trx_timestamp).strftime("%Y-%m-%d %H:%M:%S")
             trx_timestamp = f"{dt} UTC"
