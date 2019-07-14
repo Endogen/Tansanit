@@ -19,6 +19,8 @@ from datetime import datetime
 
 
 # TODO: Remove 'self.log.error(e)' from tansanit.py since it's in client already
+# TODO: Convert client and multiwallet to Python 3.7
+# TODO: Add header with basic info and balance refresh (rate adjustable)
 class Tansanit(Cmd):
 
     __version__ = "0.2"
@@ -32,6 +34,7 @@ class Tansanit(Cmd):
 
     ARGS_RECEIVE = ["tty"]
     ARGS_BALANCE = ["all"]
+    ARGS_CONNECT = ["auto"]
 
     def __init__(self):
         super().__init__()
@@ -193,13 +196,25 @@ class Tansanit(Cmd):
         """ Show server list """
 
         result = self.client.info()
+        connected_ip = result["server"].split(":")[0]
 
         for s in result["full_servers_list"]:
             ip, port, load, height = s["ip"], s["port"], s["load"], s["height"]
-            print(f"IP: {ip:<16} Port: {port:<5} Load: {load:<3} Height: {height}")
+            msg = f"IP: {ip:<16} Port: {port:<5} Load: {load:<3} Height: {height}"
+
+            if ip == connected_ip:
+                print(f"{msg}{self.SELECTED}")
+            else:
+                print(msg)
 
     def do_connect(self, args):
         """ Select server to connect with """
+
+        if args and args == "auto":
+            with Spinner():
+                self.client.get_server()
+            self.do_servers("")
+            return
 
         result = self.client.info()
         s_list = list()
@@ -227,6 +242,9 @@ class Tansanit(Cmd):
                 print("DONE! Connected")
             else:
                 print(result)
+
+    def complete_connect(self, text, line, begidx, endidx):
+        return [i for i in self.ARGS_CONNECT if i.startswith(text)]
 
     def do_status(self, args):
         """ Show server status """

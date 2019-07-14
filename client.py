@@ -2,8 +2,6 @@ import time
 import json
 import base64
 import logging
-import sys
-import os
 
 from time import time
 from datetime import timedelta
@@ -194,11 +192,11 @@ class Client:
             is_there = False
             for present in self.full_servers:
                 if server['ip'] == present['ip'] and server['port'] == present['port']:
-                    is_there=True
+                    is_there = True
             if not is_there:
                 self.full_servers.append(server)
 
-        self.servers = ["{}:{}".format(server['ip'], server['port']) for server in self.full_servers]
+        self.servers = [f"{server['ip']}:{server['port']}" for server in self.full_servers]
 
     # --- wallet functions
 

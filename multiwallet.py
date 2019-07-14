@@ -1,8 +1,6 @@
 import time
 import json
 import random
-import sys
-import os
 import logging
 
 from os import path
