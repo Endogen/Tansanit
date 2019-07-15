@@ -127,8 +127,11 @@ class Tansanit(Cmd):
             logger.addHandler(file_log)
 
     def _get_password(self, wallet_file):
-        with open(wallet_file, 'r') as file:
-            data = json.load(file)
+        try:
+            with open(wallet_file, 'r') as file:
+                data = json.load(file)
+        except:
+            return None
 
         if data["encrypted"]:
             enter_pass = [
@@ -142,6 +145,7 @@ class Tansanit(Cmd):
             res_pass = prompt(enter_pass)
 
             sys.stdout.write("\033[F")  # back to previous line
+            # TODO: This only works on Linux, macOS
             sys.stdout.write("\033[K")  # clear line
 
             if res_pass:
@@ -165,11 +169,11 @@ class Tansanit(Cmd):
             self.client.get_server()
 
     def preloop(self):
-        if self.args.clear:
+        if self.args.clear and os.name != "nt":
             os.system("clear")
 
     def precmd(self, line):
-        if self.args.clear:
+        if self.args.clear and os.name != "nt":
             os.system("clear")
         print()
         return line
@@ -833,6 +837,7 @@ class Spinner:
         self.busy = False
         time.sleep(self.delay)
         sys.stdout.write("\b"*9)
+        # TODO: This only works on Linux, macOS
         sys.stdout.write("\033[K")
         if exception is not None:
             return False
