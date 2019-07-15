@@ -144,9 +144,11 @@ class Tansanit(Cmd):
 
             res_pass = prompt(enter_pass)
 
-            sys.stdout.write("\033[F")  # back to previous line
-            # TODO: This only works on Linux, macOS
-            sys.stdout.write("\033[K")  # clear line
+            # Back to previous line
+            sys.stdout.write("\033[F")
+            if os.name != "nt":
+                # Clear line
+                sys.stdout.write("\033[K")
 
             if res_pass:
                 return res_pass["password"] if res_pass["password"] else None
@@ -843,8 +845,9 @@ class Spinner:
         self.busy = False
         time.sleep(self.delay)
         sys.stdout.write("\b"*9)
-        # TODO: This only works on Linux, macOS
-        sys.stdout.write("\033[K")
+        if os.name != "nt":
+            # Clear line
+            sys.stdout.write("\033[K")
         if exception is not None:
             return False
 
