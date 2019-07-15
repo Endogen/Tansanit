@@ -169,12 +169,18 @@ class Tansanit(Cmd):
             self.client.get_server()
 
     def preloop(self):
-        if self.args.clear and os.name != "nt":
-            os.system("clear")
+        if self.args.clear:
+            if os.name == "nt":
+                os.system("cls")
+            else:
+                os.system("clear")
 
     def precmd(self, line):
-        if self.args.clear and os.name != "nt":
-            os.system("clear")
+        if self.args.clear:
+            if os.name == "nt":
+                os.system("cls")
+            else:
+                os.system("clear")
         print()
         return line
 
