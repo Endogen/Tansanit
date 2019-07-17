@@ -537,12 +537,13 @@ class Tansanit(Cmd):
         else:
             return
 
-        with Spinner():
-            try:
-                self.client.new_address(label, password1, salt)
-            except Exception as e:
-                logging.error(e)
-                print(str(e))
+        try:
+            with Spinner():
+                new_address = self.client.new_address(label, password1, salt)
+            print(f"\nDONE! New address: {new_address}")
+        except Exception as e:
+            logging.error(e)
+            print(str(e))
 
     def do_select(self, args):
         """ Change currently active address """

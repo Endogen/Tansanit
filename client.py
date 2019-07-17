@@ -414,7 +414,7 @@ class Client:
 
     def new_address(self, label, password, salt):
         try:
-            self._wallet.new_address(label, password, salt)
+            return self._wallet.new_address(label, password, salt)
         except RuntimeError as e:
             self.log.error(e)
             raise e

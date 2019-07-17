@@ -181,10 +181,11 @@ class MultiWallet:
             content = json.dumps(keys)
             encrypted = b64encode(encrypt(self._master_password, content, level=1)).decode('utf-8')
             self._data['addresses'].append(encrypted)
+            self.save()
         else:
-            print(f"DONE! New address: {keys['address']}", end="\r")
             self._data['addresses'].append(keys)
-        self.save()
+            self.save()
+            return keys['address']
 
     def set_label(self, address: str = '', label: str = ''):
         """
