@@ -398,7 +398,8 @@ class Client:
 
         if len(self._wallet.addresses) == 0:
             # Create a first address by default
-            self._wallet.new_address(label="default")
+            new_address = self._wallet.new_address(label="default")
+            self.set_address(new_address)
         self.wallet_file = wallet_file
         if self.address != self._wallet.address:
             self.clear_cache()
