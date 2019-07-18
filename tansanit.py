@@ -328,12 +328,6 @@ class Tansanit(Cmd):
             print(f"\n{msg}")
             return
 
-        if float(amount) == 0:
-            msg = "'Amount' can't be 0!"
-            logging.error(msg)
-            print(f"\n{msg}")
-            return
-
         if self.client.reject_empty_msg(address) and not data:
             msg = "This address needs a 'Data' entry!"
             logging.error(msg)

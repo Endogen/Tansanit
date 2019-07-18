@@ -286,7 +286,14 @@ class Client:
                 timestamp -= (self.time_drift + 0.1)
                 # This is to avoid "rejected transaction because in the future
             public_key_hashed = base64.b64encode(self._wallet.public_key.encode('utf-8'))
-            signature_enc = bismuthcrypto.sign_with_key(timestamp, self.address, recipient, amount, operation, data, self._wallet.key)
+            signature_enc = bismuthcrypto.sign_with_key(
+                timestamp,
+                self.address,
+                recipient,
+                amount,
+                operation,
+                data,
+                self._wallet.key)
             txid = signature_enc[:56]
             tx_submit = ('%.2f' % timestamp, self.address, recipient, '%.8f' % float(amount),
                           str(signature_enc), str(public_key_hashed.decode("utf-8")), operation, data)
@@ -404,6 +411,7 @@ class Client:
         if self.address != self._wallet.address:
             self.clear_cache()
         self.address = self._wallet.address
+        self.set_address(self.address)
 
     def set_address(self, address: str = ''):
         if not type(self._wallet) == MultiWallet:
