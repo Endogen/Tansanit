@@ -317,7 +317,7 @@ class Tansanit(Cmd):
         if not BismuthUtil.valid_address(address):
             msg = f"'{address}' is not a valid address!"
             logging.error(msg)
-            print(msg)
+            print(f"\n{msg}")
             return
 
         try:
@@ -325,13 +325,19 @@ class Tansanit(Cmd):
         except ValueError:
             msg = "'Amount' has to be numeric!"
             logging.error(msg)
-            print(msg)
+            print(f"\n{msg}")
+            return
+
+        if float(amount) == 0:
+            msg = "'Amount' can't be 0!"
+            logging.error(msg)
+            print(f"\n{msg}")
             return
 
         if self.client.reject_empty_msg(address) and not data:
             msg = "This address needs a 'Data' entry!"
             logging.error(msg)
-            print(msg)
+            print(f"\n{msg}")
             return
 
         question = [
@@ -360,7 +366,7 @@ class Tansanit(Cmd):
                     if reply:
                         print(f"\nDONE! TRXID: {reply}\n")
                     else:
-                        print("Transaction couldn't be send")
+                        print("\nTransaction couldn't be send")
                 except Exception as e:
                     logging.error(e)
                     print(str(e))
@@ -517,7 +523,7 @@ class Tansanit(Cmd):
             password2 = res_pass["password2"] if res_pass["password2"] else ""
 
             if password1 != password2:
-                print("Passwords don't match!")
+                print("\nPasswords don't match!")
                 return
         else:
             return
@@ -566,7 +572,7 @@ class Tansanit(Cmd):
             try:
                 addresses = list(filter(None, result["addresses"].split(" ")))
                 self.client.set_address(addresses[0].strip())
-                print("DONE! Address selected")
+                print("\nDONE! Address selected")
             except Exception as e:
                 logging.error(e)
                 print(str(e))
@@ -631,7 +637,7 @@ class Tansanit(Cmd):
 
         if res_label:
             if not res_label["label"]:
-                print("No label provided")
+                print("\nNo label provided")
                 return
 
             label = res_label["label"]
@@ -639,7 +645,7 @@ class Tansanit(Cmd):
             return
 
         self.client.set_label(self.client.address, label)
-        print("DONE! Label changed")
+        print("\nDONE! Label changed")
 
     def do_msg_encrypt(self, args):
         """ Encrypts given message for recipient """
@@ -710,22 +716,32 @@ class Tansanit(Cmd):
         question = [
             {
                 "type": "password",
-                "name": "password",
-                "message": "Password:"
+                "name": "password1",
+                "message": "Password 1/2:"
+            },
+            {
+                "type": "password",
+                "name": "password2",
+                "message": "Password 2/2:"
             }
         ]
 
         res_pass = prompt(question)
 
         if res_pass:
-            password = res_pass["password"] if res_pass["password"] else ""
+            password1 = res_pass["password1"] if res_pass["password1"] else ""
+            password2 = res_pass["password2"] if res_pass["password2"] else ""
+
+            if password1 != password2:
+                print("\nPasswords don't match!")
+                return
         else:
             return
 
         try:
             with Spinner():
-                self.client.encrypt_wallet(password=password)
-            print("DONE! Wallet encrypted")
+                self.client.encrypt_wallet(password=password1)
+            print("\nDONE! Wallet encrypted")
         except Exception as e:
             logging.error(e)
             print(str(e))
@@ -756,7 +772,7 @@ class Tansanit(Cmd):
         try:
             with Spinner():
                 self.client.decrypt_wallet(password=password)
-            print("DONE! Wallet decrypted")
+            print("\nDONE! Wallet decrypted")
         except Exception as e:
             logging.error(e)
             print(str(e))
@@ -765,7 +781,7 @@ class Tansanit(Cmd):
         """ Execute shell commands """
 
         os.system(command)
-        print("DONE! Command executed")
+        print("\nDONE! Command executed")
 
     def do_quit(self, args):
         """ Quit Tansanit """
