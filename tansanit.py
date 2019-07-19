@@ -190,10 +190,18 @@ class Tansanit(Cmd):
         print()
         return stop
 
-    def do_version(self, args):
-        """ Show Tansanit version """
+    def do_about(self, args):
+        """ Show about info and version """
 
-        print(f"Tansanit Version {self.__version__}")
+        about = f"Created by Endogen\n\n" \
+                f"Telegram: https://t.me/endogen\n" \
+                f"GitHub:   https://github.com/Endogen\n" \
+                f"Email:    endogen@protonmail.com\n\n" \
+                f"Tansanit\n\n" \
+                f"Version:  {self.__version__}\n" \
+                f"Source:   https://github.com/Endogen/Tansanit"
+
+        print(about)
 
     def do_wallet(self, args):
         """ Show wallet info """
