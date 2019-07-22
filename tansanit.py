@@ -468,7 +468,8 @@ class Tansanit(Cmd):
     def do_refresh(self, args):
         """ Refresh server list """
 
-        self.client.refresh_servers()
+        with Spinner():
+            self.client.refresh_servers()
         self.do_servers(args)
 
     def do_addresses(self, args):
