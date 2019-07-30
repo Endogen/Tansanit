@@ -325,7 +325,7 @@ class Tansanit(Cmd):
         if not BismuthUtil.valid_address(address):
             msg = f"'{address}' is not a valid address!"
             logging.error(msg)
-            print(f"\n{msg}")
+            print(f"{msg}")
             return
 
         try:
@@ -333,13 +333,13 @@ class Tansanit(Cmd):
         except ValueError:
             msg = "'Amount' has to be numeric!"
             logging.error(msg)
-            print(f"\n{msg}")
+            print(f"{msg}")
             return
 
         if self.client.reject_empty_msg(address) and not data:
             msg = "This address needs a 'Data' entry!"
             logging.error(msg)
-            print(f"\n{msg}")
+            print(f"{msg}")
             return
 
         question = [
@@ -366,9 +366,9 @@ class Tansanit(Cmd):
                         data=data)
 
                     if reply:
-                        print(f"\nDONE! TRXID: {reply}\n")
+                        print(f"DONE! TRXID: {reply}\n")
                     else:
-                        print("\nTransaction couldn't be send")
+                        print("Transaction couldn't be send")
                 except Exception as e:
                     logging.error(e)
                     print(str(e))
