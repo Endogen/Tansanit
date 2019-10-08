@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import time
 import qrcode
-import threading
 import logging
 import sys
 import os
 import json
+import time
+import threading
 
 from cmd import Cmd
 from pyfiglet import Figlet
@@ -23,7 +23,7 @@ from datetime import datetime
 # TODO: Add header with basic info and balance refresh (rate adjustable)
 class Tansanit(Cmd):
 
-    __version__ = "0.2"
+    __version__ = "0.3"
 
     LOG_FILE = os.path.join("log", "tansanit.log")
 
@@ -35,6 +35,11 @@ class Tansanit(Cmd):
     ARGS_RECEIVE = ["tty"]
     ARGS_BALANCE = ["all"]
     ARGS_CONNECT = ["auto"]
+
+    run = True
+    repeat = 10
+
+    _balance = None
 
     def __init__(self):
         super().__init__()
@@ -58,6 +63,8 @@ class Tansanit(Cmd):
         try:
             with Spinner():
                 self._init_wallet(password)
+                if self.args.notify:
+                    self.run_scheduler()
         except Exception as e:
             logging.error(e)
             print(f"\n{e}\n")
@@ -93,7 +100,7 @@ class Tansanit(Cmd):
             default=60,
             required=False)
 
-        # Clear
+        # Clear screen
         parser.add_argument(
             "--no-clear",
             dest="clear",
@@ -101,6 +108,15 @@ class Tansanit(Cmd):
             help="don't clear after each command",
             required=False,
             default=True)
+
+        # Notify about balance changes
+        parser.add_argument(
+            "--notify",
+            dest="notify",
+            action="store_true",
+            help="notify on balance changes",
+            required=False,
+            default=False)
 
         return parser.parse_args()
 
@@ -832,6 +848,35 @@ class Tansanit(Cmd):
         ]
 
         return prompt(question)
+
+    def notify(self, text):
+        os.system("""
+                  osascript -e 'display notification "{}" with title "{}"'
+                  """.format(text, "Tansanit balance changed"))
+
+    def run_scheduler(self):
+        self.run = True
+
+        job = threading.Thread(target=self.check_balance)
+        job.setDaemon(True)
+        job.start()
+
+    def check_balance(self):
+        while True:
+            if not self.run:
+                break
+
+            balance = self.client.balance(for_display=True)
+
+            if not self._balance:
+                self._balance = balance
+                continue
+
+            if self._balance != balance:
+                self._balance = balance
+                self.notify(f"{balance} BIS")
+
+            time.sleep(self.repeat)
 
 
 class Spinner:
