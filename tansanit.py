@@ -7,6 +7,7 @@ import os
 import json
 import time
 import threading
+import multiprocessing
 
 from cmd import Cmd
 from pyfiglet import Figlet
@@ -20,7 +21,6 @@ from datetime import datetime
 
 # TODO: Remove 'self.log.error(e)' from tansanit.py since it's in client already
 # TODO: Convert client and multiwallet to Python 3.7
-# TODO: Add header with basic info and balance refresh (rate adjustable)
 class Tansanit(Cmd):
 
     __version__ = "0.3"
@@ -35,9 +35,10 @@ class Tansanit(Cmd):
     ARGS_RECEIVE = ["tty"]
     ARGS_BALANCE = ["all"]
     ARGS_CONNECT = ["auto"]
+    ARGS_NOTIFY = ["on", "off"]
 
-    run = True
-    repeat = 15
+    job = None
+    repeat = 7
 
     _balance = None
 
@@ -64,7 +65,7 @@ class Tansanit(Cmd):
             with Spinner():
                 self._init_wallet(password)
                 if self.args.notify:
-                    self.run_scheduler()
+                    self.run_job()
         except Exception as e:
             logging.error(e)
             print(f"\n{e}\n")
@@ -820,6 +821,7 @@ class Tansanit(Cmd):
         result = prompt(question)
 
         if result and result[question[0]["name"]] == "Yes":
+            self.job.terminate() if self.job else None
             raise SystemExit
 
     def _select_address(self, name="addresses", message="Select an address"):
@@ -849,27 +851,39 @@ class Tansanit(Cmd):
 
         return prompt(question)
 
+    def do_notify(self,  args):
+        """ Turn periodic balance check on or off """
+
+        if not args:
+            print("Provide argument 'on' or 'off'")
+        else:
+            if args.lower() == "on":
+                self.run_job()
+                print("Balance check activated")
+            elif args.lower() == "off":
+                self.job.terminate() if self.job else None
+                print("Balance check deactivated")
+            else:
+                print("Provide argument 'on' or 'off'")
+
+    def complete_notify(self, text, line, begidx, endidx):
+        return [i for i in self.ARGS_NOTIFY if i.startswith(text)]
+
     def notify(self, text):
         title = '"Tansanit balance changed"'
         os.system(f"osascript notify.scpt {title} {text}")
 
-    def run_scheduler(self):
-        self.run = True
-
-        job = threading.Thread(target=self.check_balance)
-        job.setDaemon(True)
-        job.start()
+    def run_job(self):
+        self.job.terminate() if self.job else None
+        self.job = multiprocessing.Process(target=self.check_balance)
+        self.job.start()
 
     def check_balance(self):
         while True:
-            if not self.run:
-                break
-
             balance = self.client.balance(for_display=True)
 
             if not self._balance:
                 self._balance = balance
-                continue
 
             if self._balance != balance:
                 self._balance = balance
