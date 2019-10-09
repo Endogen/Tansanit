@@ -37,7 +37,7 @@ class Tansanit(Cmd):
     ARGS_CONNECT = ["auto"]
 
     run = True
-    repeat = 10
+    repeat = 15
 
     _balance = None
 
@@ -850,9 +850,8 @@ class Tansanit(Cmd):
         return prompt(question)
 
     def notify(self, text):
-        os.system("""
-                  osascript -e 'display notification "{}" with title "{}"'
-                  """.format(text, "Tansanit balance changed"))
+        title = '"Tansanit balance changed"'
+        os.system(f"osascript notify.scpt {title} {text}")
 
     def run_scheduler(self):
         self.run = True
