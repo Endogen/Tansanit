@@ -38,7 +38,7 @@ class Tansanit(Cmd):
     ARGS_NOTIFY = ["on", "off"]
 
     job = None
-    repeat = 7
+    repeat = 20
 
     _balance = None
 
